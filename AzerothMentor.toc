@@ -1,0 +1,14 @@
+## Interface: 120005
+## Title: Azeroth Mentor
+## Notes: Beginner mentor addon for World of Warcraft
+## Author: Inchy
+## Version: 0.0.1
+
+Core/Main.lua
+Locales/enUS.lua
+Locales/nlNL.lua
+Core/Player.lua
+Core/Spells.lua
+Classes/Paladin/Retribution.lua
+UI/MainFrame.lua
+Core/Events.lua
