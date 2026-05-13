@@ -26,32 +26,12 @@ local function PrintUIScale(scale)
     print(string.format("[Azeroth Mentor] UI Scale: %.2f", scale))
 end
 
---- Spell icon path / fileID for the spell card (API-safe).
-local function SafeSpellIconTexture(spellID)
-    if not spellID then
-        return 134400
-    end
-    if C_Spell and C_Spell.GetSpellTexture then
-        local ok, tex = pcall(C_Spell.GetSpellTexture, spellID)
-        if ok and tex then
-            return tex
-        end
-    end
-    if type(GetSpellTexture) == "function" then
-        local ok, tex = pcall(GetSpellTexture, spellID)
-        if ok and tex then
-            return tex
-        end
-    end
-    return 134400
-end
-
 --------------------------------------------------------------------------------
 -- Main panel frame (global name for UISpecialFrames and /run access)
 --------------------------------------------------------------------------------
 local AzerothMentorFrame = CreateFrame("Frame", "AzerothMentorFrame", UIParent, "BackdropTemplate")
 
-AzerothMentorFrame:SetSize(360, 458)
+AzerothMentorFrame:SetSize(360, 498)
 AzerothMentorFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 AzerothMentorFrame:SetFrameStrata("MEDIUM")
 AzerothMentorFrame:SetClampedToScreen(true)
@@ -180,11 +160,23 @@ tutorialText:SetSpacing(2)
 tutorialText:SetTextColor(0.55, 0.58, 0.62)
 tutorialText:EnableMouse(false)
 
+-- Level-up banner (PLAYER_LEVEL_UP). Sits above the spell card; not cleared by normal refreshes.
+local levelUpText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+levelUpText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
+levelUpText:SetWidth(CONTENT_WIDTH)
+levelUpText:SetJustifyH("CENTER")
+levelUpText:SetJustifyV("TOP")
+levelUpText:SetWordWrap(true)
+levelUpText:SetSpacing(4)
+levelUpText:SetTextColor(0.45, 0.95, 0.55)
+levelUpText:SetText("")
+levelUpText:EnableMouse(false)
+
 -- Spell card: first known Paladin registry ability (Crusader Strike preferred when known).
 -- Icon uses WoW spell art; hover shows the real GameTooltip for the spell ID.
 local spellCard = CreateFrame("Frame", nil, AzerothMentorFrame)
 spellCard:SetSize(CONTENT_WIDTH, 54)
-spellCard:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
+spellCard:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
 spellCard:SetFrameLevel(AzerothMentorFrame:GetFrameLevel() + 3)
 spellCard:Hide()
 
@@ -200,7 +192,7 @@ spellIconBtn:SetScript("OnEnter", function(self)
     if not self.spellID then
         return
     end
-    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 8)
     local ok = pcall(function()
         GameTooltip:SetSpellByID(self.spellID)
     end)
@@ -233,7 +225,7 @@ spellCardTip:EnableMouse(false)
 -- Newly learned tracked spell (Paladin starter kit). Shown only when a registry spell becomes known.
 -- Future tooltips: wrap spell name in a Button, OnEnter → GameTooltip:SetSpellByID(spellID); OnLeave Hide().
 local learnedSpellText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-learnedSpellText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -16)
+learnedSpellText:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
 learnedSpellText:SetWidth(CONTENT_WIDTH)
 learnedSpellText:SetJustifyH("CENTER")
 learnedSpellText:SetJustifyV("TOP")
@@ -242,6 +234,20 @@ learnedSpellText:SetSpacing(3)
 learnedSpellText:SetTextColor(0.75, 0.88, 1)
 learnedSpellText:EnableMouse(false)
 AM.mainFrame = AzerothMentorFrame
+
+--------------------------------------------------------------------------------
+-- Level-up banner (set from Core/Events.lua on PLAYER_LEVEL_UP)
+--------------------------------------------------------------------------------
+--- @param level number new player level from PLAYER_LEVEL_UP
+function AM:SetLevelUpMessage(level)
+    if type(level) ~= "number" or not levelUpText then
+        return
+    end
+
+    local loc = AM.L
+    local headline = string.format("%s %s", loc["LEVEL_UP"], string.format(loc["LEVEL_REACHED"], level))
+    levelUpText:SetText(headline .. "\n\n" .. loc["NEW_TRAINING_AVAILABLE"])
+end
 
 --------------------------------------------------------------------------------
 -- Slash command: /am toggles visibility; /am scale reset restores default scale
@@ -292,8 +298,9 @@ function AM:UpdateMainFrame()
     if cardInfo then
         spellCard:Show()
         spellIconBtn.spellID = cardInfo.spellID
-        spellIconTex:SetTexture(SafeSpellIconTexture(cardInfo.spellID))
-        spellCardName:SetText(cardInfo.name)
+        local dispName, dispIcon = self:GetSpellDisplayInfo(cardInfo.spellID)
+        spellIconTex:SetTexture(dispIcon)
+        spellCardName:SetText(dispName)
         spellCardTip:SetText(L[cardInfo.tutorialKey])
     else
         spellCard:Hide()
@@ -304,7 +311,7 @@ function AM:UpdateMainFrame()
     if cardInfo then
         learnedSpellText:SetPoint("TOP", spellCard, "BOTTOM", 0, -10)
     else
-        learnedSpellText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -16)
+        learnedSpellText:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
     end
 
     if s.newestSpell then

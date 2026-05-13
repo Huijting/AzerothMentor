@@ -38,6 +38,9 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Judgment damages your enemy from range and helps your next Holy Power spenders hit harder."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
+    L.LEVEL_UP = "Level Up!"
+    L.LEVEL_REACHED = "You reached level %d."
+    L.NEW_TRAINING_AVAILABLE = "New training may be available."
 
     print("|cff00ff00" .. L.LOADED .. "|r")
 end

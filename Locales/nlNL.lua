@@ -36,6 +36,9 @@ if GetLocale() == "nlNL" then
         "Judgment raakt je vijand op afstand en maakt je volgende Holy Power-uitgaven effectiever."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is een snelle genezing voor jou of een bondgenoot. Gebruik het als het leven laag wordt."
+    L.LEVEL_UP = "Level omhoog!"
+    L.LEVEL_REACHED = "Je bent nu level %d."
+    L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."
 
     print("|cff00ff00" .. L.LOADED .. "|r")
 end

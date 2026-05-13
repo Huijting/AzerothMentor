@@ -66,9 +66,64 @@ function AM:IsSpellKnownSafe(spellID)
 end
 
 --------------------------------------------------------------------------------
+-- Spell name + icon for UI (modern C_Spell first, then legacy GetSpellInfo)
+--------------------------------------------------------------------------------
+local UNKNOWN_SPELL_NAME = "Unknown Spell"
+local FALLBACK_SPELL_ICON = 134400
+
+--- @param spellID number|nil
+--- @return string spellName
+--- @return number|string spellIcon fileID or texture path for SetTexture
+function AM:GetSpellDisplayInfo(spellID)
+    if spellID == nil then
+        return UNKNOWN_SPELL_NAME, FALLBACK_SPELL_ICON
+    end
+
+    local spellName = UNKNOWN_SPELL_NAME
+    local spellIcon = FALLBACK_SPELL_ICON
+
+    if C_Spell and type(C_Spell.GetSpellInfo) == "function" then
+        local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
+        if ok and info and type(info) == "table" then
+            if info.name and info.name ~= "" then
+                spellName = info.name
+            end
+            local iconCandidate = info.iconID or info.originalIconID or info.iconFileID or info.icon
+            if iconCandidate then
+                spellIcon = iconCandidate
+            end
+        end
+    end
+
+    if type(GetSpellInfo) == "function" then
+        local ok, pack = pcall(function()
+            return { GetSpellInfo(spellID) }
+        end)
+        if ok and pack then
+            if spellName == UNKNOWN_SPELL_NAME and pack[1] and pack[1] ~= "" then
+                spellName = pack[1]
+            end
+            if spellIcon == FALLBACK_SPELL_ICON and pack[3] and pack[3] ~= "" and pack[3] ~= nil then
+                spellIcon = pack[3]
+            end
+        end
+    end
+
+    if spellName == nil or spellName == "" then
+        spellName = UNKNOWN_SPELL_NAME
+    end
+
+    if spellIcon == nil or spellIcon == "" then
+        spellIcon = FALLBACK_SPELL_ICON
+    end
+
+    return spellName, spellIcon
+end
+
+--------------------------------------------------------------------------------
 -- Shared spell row → display info (only when the spell is actually known)
 --------------------------------------------------------------------------------
---- @return table|nil { spellID, tutorialKey, category, name }
+--- @return table|nil { spellID, tutorialKey, category, name, icon }
 local function BuildSpellDisplayInfo(self, row)
     if not row or row.spellID == nil or not row.tutorialKey then
         return nil
@@ -78,29 +133,21 @@ local function BuildSpellDisplayInfo(self, row)
     end
 
     local spellID = row.spellID
-    local name = UNKNOWN
-
-    if type(GetSpellInfo) == "function" then
-        local ok, spellName = pcall(function()
-            return select(1, GetSpellInfo(spellID))
-        end)
-        if ok and spellName and spellName ~= "" then
-            name = spellName
-        end
-    end
+    local spellName, spellIcon = self:GetSpellDisplayInfo(spellID)
 
     return {
         spellID = spellID,
         tutorialKey = row.tutorialKey,
         category = row.category or "utility",
-        name = name,
+        name = spellName,
+        icon = spellIcon,
     }
 end
 
 --------------------------------------------------------------------------------
 -- Known spell scan
 --------------------------------------------------------------------------------
---- @return table[] list of { spellID, tutorialKey, category, name } for tracked spells the player currently knows.
+--- @return table[] list of { spellID, tutorialKey, category, name, icon } for tracked spells the player currently knows.
 function AM:GetKnownSpells()
     local _, classFile = UnitClass("player")
     local list = {}
@@ -128,7 +175,7 @@ end
 -- First known class spell (for spell card UI)
 --------------------------------------------------------------------------------
 --- Returns one display-ready Paladin registry spell: Crusader Strike if known, else the first known row in DB order.
---- @return table|nil { spellID, tutorialKey, category, name }
+--- @return table|nil { spellID, tutorialKey, category, name, icon }
 function AM:GetFirstKnownClassSpell()
     local _, classFile = UnitClass("player")
     if classFile ~= "PALADIN" then
@@ -164,7 +211,7 @@ end
 --------------------------------------------------------------------------------
 --- Detects a tracked spell that just became known and has not been announced yet.
 --- Uses a one-time snapshot init on first run to avoid spamming every known spell at login.
---- @return table|nil info { spellID, tutorialKey, category, name }
+--- @return table|nil info { spellID, tutorialKey, category, name, icon }
 function AM:GetNewestKnownSpell()
     self.db.spellTipsSeen = self.db.spellTipsSeen or {}
 
