@@ -160,7 +160,8 @@ tutorialText:SetSpacing(2)
 tutorialText:SetTextColor(0.55, 0.58, 0.62)
 tutorialText:EnableMouse(false)
 
--- Level-up banner (PLAYER_LEVEL_UP). Sits above the spell card; not cleared by normal refreshes.
+-- Level-up banner (PLAYER_LEVEL_UP): short in-frame echo only. Blizzard already shows the main level-up / unlock celebration;
+-- this line fades quickly so we do not compete with the default UI (see SetLevelUpMessage).
 local levelUpText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 levelUpText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
 levelUpText:SetWidth(CONTENT_WIDTH)
@@ -170,29 +171,40 @@ levelUpText:SetWordWrap(true)
 levelUpText:SetSpacing(4)
 levelUpText:SetTextColor(0.45, 0.95, 0.55)
 levelUpText:SetText("")
+levelUpText:Hide()
 levelUpText:EnableMouse(false)
 
--- Headline when DetectNewSpells reports a new tracked ability (one refresh; see Core/Spells.lua).
-local spellCardLabel = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+-- Subtle label above the spell card: Azeroth Mentor explains HOW/WHY here; Blizzard handles “you learned X”.
+local spellCardLabel = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Small")
 spellCardLabel:SetWidth(CONTENT_WIDTH)
 spellCardLabel:SetJustifyH("CENTER")
 spellCardLabel:SetJustifyV("TOP")
-spellCardLabel:SetTextColor(0.45, 0.95, 0.55)
-spellCardLabel:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+spellCardLabel:SetTextColor(0.72, 0.76, 0.84)
+spellCardLabel:SetAlpha(0.92)
+spellCardLabel:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
 spellCardLabel:Hide()
 spellCardLabel:EnableMouse(false)
 
--- Spell card: latest learned tracked spell when available, else first known (Crusader Strike preferred).
--- Icon uses WoW spell art; hover shows the real GameTooltip for the spell ID.
-local spellCard = CreateFrame("Frame", nil, AzerothMentorFrame)
+-- Spell card: mentor copy + icon (tooltip on icon). Blizzard announces unlocks; this panel teaches usage.
+local spellCard = CreateFrame("Frame", nil, AzerothMentorFrame, "BackdropTemplate")
 spellCard:SetSize(CONTENT_WIDTH, 54)
-spellCard:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+spellCard:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
 spellCard:SetFrameLevel(AzerothMentorFrame:GetFrameLevel() + 3)
+spellCard:SetBackdrop({
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    tile = true,
+    tileSize = 8,
+    edgeSize = 1,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 },
+})
+spellCard:SetBackdropColor(0.04, 0.04, 0.06, 0.72)
+spellCard:SetBackdropBorderColor(0.22, 0.2, 0.18, 0.65)
 spellCard:Hide()
 
 local spellIconBtn = CreateFrame("Button", nil, spellCard)
 spellIconBtn:SetSize(32, 32)
-spellIconBtn:SetPoint("LEFT", spellCard, "LEFT", 0, 2)
+spellIconBtn:SetPoint("CENTER", spellCard, "LEFT", 24, 0)
 spellIconBtn:SetFrameLevel(spellCard:GetFrameLevel() + 2)
 
 local spellIconTex = spellIconBtn:CreateTexture(nil, "ARTWORK")
@@ -216,15 +228,15 @@ end)
 
 local spellCardName = spellCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 spellCardName:SetPoint("TOPLEFT", spellIconBtn, "TOPRIGHT", 10, -2)
-spellCardName:SetWidth(CONTENT_WIDTH - 46)
+spellCardName:SetWidth(CONTENT_WIDTH - 54)
 spellCardName:SetJustifyH("LEFT")
 spellCardName:SetJustifyV("TOP")
 spellCardName:SetWordWrap(true)
 spellCardName:EnableMouse(false)
 
 local spellCardTip = spellCard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-spellCardTip:SetPoint("TOPLEFT", spellCardName, "BOTTOMLEFT", 0, -4)
-spellCardTip:SetWidth(CONTENT_WIDTH - 46)
+spellCardTip:SetPoint("TOPLEFT", spellCardName, "BOTTOMLEFT", 0, -6)
+spellCardTip:SetWidth(CONTENT_WIDTH - 54)
 spellCardTip:SetJustifyH("LEFT")
 spellCardTip:SetJustifyV("TOP")
 spellCardTip:SetWordWrap(true)
@@ -232,10 +244,9 @@ spellCardTip:SetSpacing(2)
 spellCardTip:SetTextColor(0.72, 0.78, 0.9)
 spellCardTip:EnableMouse(false)
 
--- Newly learned tracked spell (Paladin starter kit). Shown only when a registry spell becomes known.
--- Future tooltips: wrap spell name in a Button, OnEnter → GameTooltip:SetSpellByID(spellID); OnLeave Hide().
+-- Optional footnote region (mentor teaching copy lives on the spell card; avoids duplicating Blizzard unlock banners).
 local learnedSpellText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-learnedSpellText:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+learnedSpellText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
 learnedSpellText:SetWidth(CONTENT_WIDTH)
 learnedSpellText:SetJustifyH("CENTER")
 learnedSpellText:SetJustifyV("TOP")
@@ -248,15 +259,47 @@ AM.mainFrame = AzerothMentorFrame
 --------------------------------------------------------------------------------
 -- Level-up banner (set from Core/Events.lua on PLAYER_LEVEL_UP)
 --------------------------------------------------------------------------------
+local LEVEL_UP_DISPLAY_SECONDS = 8
+local LEVEL_UP_FADE_SECONDS = 1.25
+local levelUpBannerSeq = 0
+
 --- @param level number new player level from PLAYER_LEVEL_UP
 function AM:SetLevelUpMessage(level)
     if type(level) ~= "number" or not levelUpText then
         return
     end
 
+    levelUpBannerSeq = levelUpBannerSeq + 1
+    local seq = levelUpBannerSeq
+
     local loc = AM.L
     local headline = string.format("%s %s", loc["LEVEL_UP"], string.format(loc["LEVEL_REACHED"], level))
     levelUpText:SetText(headline .. "\n\n" .. loc["NEW_TRAINING_AVAILABLE"])
+    levelUpText:SetAlpha(1)
+    levelUpText:Show()
+
+    C_Timer.After(LEVEL_UP_DISPLAY_SECONDS, function()
+        if seq ~= levelUpBannerSeq then
+            return
+        end
+        if levelUpText:IsShown() and UIFrameFadeOut then
+            UIFrameFadeOut(levelUpText, LEVEL_UP_FADE_SECONDS, levelUpText:GetAlpha(), 0)
+        elseif levelUpText:IsShown() then
+            levelUpText:SetAlpha(0)
+        end
+    end)
+
+    C_Timer.After(LEVEL_UP_DISPLAY_SECONDS + LEVEL_UP_FADE_SECONDS + 0.05, function()
+        if seq ~= levelUpBannerSeq then
+            return
+        end
+        levelUpText:Hide()
+        levelUpText:SetText("")
+        levelUpText:SetAlpha(1)
+        if AzerothMentorFrame and AzerothMentorFrame:IsShown() then
+            AM:UpdateMainFrame({ skipDetect = true })
+        end
+    end)
 end
 
 --------------------------------------------------------------------------------
@@ -321,21 +364,57 @@ function AM:UpdateMainFrame(opts)
     guidanceText:SetText(s.guidance)
     tutorialText:SetText(s.tutorial or "")
 
-    local showBanner = self._newAbilityBanner
-    if showBanner then
-        spellCardLabel:SetText(L["NEW_ABILITY_LEARNED"])
-        spellCardLabel:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
-        spellCardLabel:Show()
-        spellCard:ClearAllPoints()
-        spellCard:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -6)
+    if self._newAbilityBanner then
         self._newAbilityBanner = false
-    else
-        spellCardLabel:Hide()
-        spellCard:ClearAllPoints()
-        spellCard:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
     end
 
     local cardInfo = self:GetSpellCardDisplayInfo()
+
+    local now = GetTime()
+    local mentorExplainActive = self._mentorExplainUntil and now < self._mentorExplainUntil and self._mentorExplainSpellID
+    local levelUpShown = levelUpText:IsShown() and (levelUpText:GetText() or "") ~= ""
+    local latestId = self.latestLearnedSpellID
+    local showMentorTipLabel = cardInfo
+        and (
+            (latestId and cardInfo.spellID == latestId and self:IsSpellKnownSafe(latestId))
+            or (mentorExplainActive and self._mentorExplainSpellID == cardInfo.spellID)
+            or cardInfo.isUnknownUntracked
+        )
+
+    local anchorFrame, anchorPoint, anchorYOffset
+    if levelUpShown then
+        anchorFrame = levelUpText
+        anchorPoint = "BOTTOM"
+        anchorYOffset = -16
+    else
+        anchorFrame = tutorialText
+        anchorPoint = "BOTTOM"
+        anchorYOffset = -12
+    end
+
+    if showMentorTipLabel then
+        spellCardLabel:SetText(L["MENTOR_TIP"])
+        spellCardLabel:ClearAllPoints()
+        spellCardLabel:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset)
+        spellCardLabel:Show()
+        spellCard:ClearAllPoints()
+        spellCard:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -8)
+    else
+        spellCardLabel:Hide()
+        spellCard:ClearAllPoints()
+        spellCard:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset)
+    end
+
+    if showMentorTipLabel then
+        spellCard:SetHeight(64)
+        spellCardTip:SetFontObject(GameFontHighlight)
+        spellCardTip:SetSpacing(5)
+    else
+        spellCard:SetHeight(54)
+        spellCardTip:SetFontObject(GameFontHighlightSmall)
+        spellCardTip:SetSpacing(2)
+    end
+
     if cardInfo then
         spellCard:Show()
         spellIconBtn.spellID = cardInfo.spellID
@@ -350,37 +429,16 @@ function AM:UpdateMainFrame(opts)
 
     learnedSpellText:ClearAllPoints()
     if cardInfo then
-        learnedSpellText:SetPoint("TOP", spellCard, "BOTTOM", 0, -10)
+        learnedSpellText:SetPoint("TOP", spellCard, "BOTTOM", 0, -12)
     elseif spellCardLabel:IsShown() then
-        learnedSpellText:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -6)
+        learnedSpellText:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -8)
     else
-        learnedSpellText:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+        learnedSpellText:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset - 10)
     end
 
     learnedSpellText:SetText("")
-    local pending = self.pendingNewSpellIds
-    self.pendingNewSpellIds = nil
-    if pending and #pending > 0 then
-        local sid = pending[1]
-        local spellName = select(1, self:GetSpellDisplayInfo(sid))
-        local tutorialKey
-        local db = self.Spells and self.Spells.PALADIN
-        if db then
-            for _, row in ipairs(db) do
-                if row and row.spellID == sid then
-                    tutorialKey = row.tutorialKey
-                    break
-                end
-            end
-        end
-        if tutorialKey then
-            learnedSpellText:SetText(string.format(
-                "%s\n%s\n\n%s",
-                L["SPELL_NEW_ABILITY"],
-                spellName,
-                L[tutorialKey]
-            ))
-        end
+    if self.pendingNewSpellIds then
+        self.pendingNewSpellIds = nil
     end
 end
 

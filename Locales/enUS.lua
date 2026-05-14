@@ -33,12 +33,25 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.SPEC_NOT_SELECTED = "Not selected yet"
     L.SPELL_NEW_ABILITY = "New Ability Learned:"
     L.NEW_ABILITY_LEARNED = "New Ability Learned"
+    L.MENTOR_TIP = "Mentor Tip"
+    L.UNKNOWN_SPELL_NOTICE =
+        "Mentor noticed a new ability, but no lesson is available for it yet."
     L.SPELL_PALADIN_CRUSADER_STRIKE =
         "Crusader Strike is a melee attack that builds Holy Power. Use it when you are close to your target."
     L.SPELL_PALADIN_JUDGMENT =
         "Judgment damages your enemy from range and helps your next Holy Power spenders hit harder."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
+    L.SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS =
+        "Shield of the Righteous spends Holy Power to hit enemies in front of you and greatly raises your armor for a short time. Use it when you are taking heavy damage (Protection, with a shield)."
+    L.SPELL_PALADIN_HAMMER_OF_JUSTICE =
+        "Hammer of Justice stuns an enemy for a short time. Use it to stop dangerous enemies."
+    L.SPELL_PALADIN_CONSECRATION =
+        "Consecration creates a holy damage area around you. Use it when fighting multiple enemies."
+    L.SPELL_PALADIN_WORD_OF_GLORY =
+        "Word of Glory spends Holy Power to heal you or an ally. Use it when you or someone nearby is hurt."
+    L.SPELL_PALADIN_HAND_OF_RECKONING =
+        "Hand of Reckoning taunts an enemy, making it focus on you. Be careful: this is mostly useful when you are tanking."
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."

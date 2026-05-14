@@ -14,14 +14,13 @@ AM.knownSpellSnapshot = AM.knownSpellSnapshot or {}
 AM._knownSpellSnapshotReady = AM._knownSpellSnapshotReady or false
 -- AM.latestLearnedSpellID — set by DetectNewSpells when new tracked spells appear.
 -- AM.pendingNewSpellIds — array of new spellIDs for the current UI refresh (consumed in UpdateMainFrame).
--- One-shot: UI shows NEW_ABILITY_LEARNED label for the refresh right after a detection.
+-- AM._mentorExplainSpellID / AM._mentorExplainUntil — keep the spell card on the new spell while the player reads the mentor copy (complements Blizzard’s unlock toast; does not replace it).
+-- AM.spellbookIdSnapshot / AM._spellbookSpellSnapshotReady — full player spellbook spellIDs for detecting learns not yet in AM.Spells.PALADIN.
+-- AM._unknownUntrackedSpellID / AM._unknownUntrackedUntil — show UNKNOWN_SPELL_NOTICE card for off-registry learns.
 AM._newAbilityBanner = AM._newAbilityBanner or false
 
--- Crusader Strike — prioritized in AM:GetFirstKnownClassSpell when actually known.
-local CRUSADER_STRIKE_SPELL_ID = 35395
-
--- Temporary: set false to silence snapshot / detection chat spam.
-local SPELL_DETECT_DEBUG = true
+-- Set true to print snapshot / detection details to chat (for development only).
+local SPELL_DETECT_DEBUG = false
 
 local function DebugSpellDetect(msg)
     if SPELL_DETECT_DEBUG then
@@ -42,17 +41,146 @@ local function SortedSpellIdList(snap)
     return table.concat(parts, ", ")
 end
 
+--- @param self AM
+--- @param spellID number
+--- @return boolean
+local function IsSpellInPaladinRegistry(self, spellID)
+    if not spellID then
+        return false
+    end
+    local db = self.Spells and self.Spells.PALADIN
+    if not db then
+        return false
+    end
+    for _, row in ipairs(db) do
+        if row and row.spellID == spellID then
+            return true
+        end
+    end
+    return false
+end
+
+--- Collect spellIDs listed in the player spellbook (General + spec tabs). Used only for Paladin untracked-learn detection.
+--- @return table<number, boolean>
+local function CollectSpellbookSpellIds()
+    local set = {}
+    local bank = 0
+    if Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player ~= nil then
+        bank = Enum.SpellBookSpellBank.Player
+    end
+
+    if C_SpellBook and type(C_SpellBook.GetSpellBookItemInfo) == "function" then
+        local flyEnum = Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.SpellFlyout
+        local futureEnum = Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.FutureSpell
+
+        local miss = 0
+        for slot = 1, 1500 do
+            local ok, info = pcall(C_SpellBook.GetSpellBookItemInfo, slot, bank)
+            if ok and info and type(info) == "table" and info.spellID and info.spellID > 0 then
+                local it = info.itemType
+                if flyEnum and it == flyEnum then
+                    miss = 0
+                elseif futureEnum and it == futureEnum then
+                    miss = 0
+                else
+                    set[info.spellID] = true
+                    miss = 0
+                end
+            else
+                miss = miss + 1
+                if miss > 100 then
+                    break
+                end
+            end
+        end
+        return set
+    end
+
+    local book = _G.BOOKTYPE_SPELL
+    if type(GetSpellBookItemInfo) == "function" and book ~= nil then
+        for slot = 1, 600 do
+            local ok, _, _, _, _, _, spellID = pcall(GetSpellBookItemInfo, slot, book)
+            if ok and spellID and spellID > 0 then
+                set[spellID] = true
+            elseif ok and (not spellID or spellID == 0) then
+                -- keep scanning; legacy API may have gaps
+            end
+        end
+    end
+
+    return set
+end
+
 --[[
   Paladin spell registry (retail spell IDs — verify after major patches).
-  tutorialKey = key into AM.L for beginner copy.
-  category   = builder | spender | heal | utility (for future filtering, not shown in UI yet).
+
+  Each row:
+    spellID     — book / player spell id used with IsSpellKnownSafe
+    tutorialKey — AM.L beginner tip when this spell is highlighted
+    category    — builder | spender | heal | utility | crowdcontrol | defensive | aoe
+                  (future: filter tips, stage gates, “what to learn next” without combat rotation math)
+    priority    — integer; higher = more important for beginners when picking a default spell card
+                  (future: mentor pacing — which concept to explain first; rotation guidance will layer on top)
+
+  Registry order is descending priority so DetectNewSpells(), when several spells appear in one refresh,
+  picks latestLearnedSpellID as the first new row — i.e. the highest-priority among newly learned.
+
   Only spells that pass IsSpellKnownSafe are treated as known (nothing “future” from this list).
+
+  Blizzard’s level-up / spell unlock UI handles celebration and “you unlocked X”.
+  Azeroth Mentor uses the same registry for HOW/WHY copy on the spell card (mentor pacing, not rotation math).
 ]]
+local MENTOR_SPELL_FOCUS_SECONDS = 55
+
 AM.Spells.PALADIN = {
-    { spellID = 35395, tutorialKey = "SPELL_PALADIN_CRUSADER_STRIKE", category = "builder" }, -- Crusader Strike
-    -- Player-learned Judgment uses the base spell id (e.g. level 3); 214222 is not the book entry on retail.
-    { spellID = 20271, tutorialKey = "SPELL_PALADIN_JUDGMENT", category = "builder" }, -- Judgment
-    { spellID = 19750, tutorialKey = "SPELL_PALADIN_FLASH_OF_LIGHT", category = "heal" }, -- Flash of Light
+    {
+        spellID = 35395,
+        tutorialKey = "SPELL_PALADIN_CRUSADER_STRIKE",
+        category = "builder",
+        priority = 100,
+    }, -- Crusader Strike
+    {
+        spellID = 20271,
+        tutorialKey = "SPELL_PALADIN_JUDGMENT",
+        category = "builder",
+        priority = 95,
+    }, -- Judgment
+    {
+        spellID = 85673,
+        tutorialKey = "SPELL_PALADIN_WORD_OF_GLORY",
+        category = "heal",
+        priority = 90,
+    }, -- Word of Glory
+    {
+        spellID = 53600,
+        tutorialKey = "SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS",
+        category = "defensive",
+        priority = 88,
+    }, -- Shield of the Righteous
+    {
+        spellID = 26573,
+        tutorialKey = "SPELL_PALADIN_CONSECRATION",
+        category = "aoe",
+        priority = 82,
+    }, -- Consecration
+    {
+        spellID = 19750,
+        tutorialKey = "SPELL_PALADIN_FLASH_OF_LIGHT",
+        category = "heal",
+        priority = 78,
+    }, -- Flash of Light
+    {
+        spellID = 853,
+        tutorialKey = "SPELL_PALADIN_HAMMER_OF_JUSTICE",
+        category = "crowdcontrol",
+        priority = 70,
+    }, -- Hammer of Justice
+    {
+        spellID = 62124,
+        tutorialKey = "SPELL_PALADIN_HAND_OF_RECKONING",
+        category = "utility",
+        priority = 65,
+    }, -- Hand of Reckoning
 }
 
 --------------------------------------------------------------------------------
@@ -155,7 +283,7 @@ end
 --------------------------------------------------------------------------------
 -- Shared spell row → display info (only when the spell is actually known)
 --------------------------------------------------------------------------------
---- @return table|nil { spellID, tutorialKey, category, name, icon }
+--- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 local function BuildSpellDisplayInfo(self, row)
     if not row or row.spellID == nil or not row.tutorialKey then
         return nil
@@ -166,11 +294,13 @@ local function BuildSpellDisplayInfo(self, row)
 
     local spellID = row.spellID
     local spellName, spellIcon = self:GetSpellDisplayInfo(spellID)
+    local priority = tonumber(row.priority) or 0
 
     return {
         spellID = spellID,
         tutorialKey = row.tutorialKey,
         category = row.category or "utility",
+        priority = priority,
         name = spellName,
         icon = spellIcon,
     }
@@ -179,7 +309,7 @@ end
 --------------------------------------------------------------------------------
 -- Known spell scan
 --------------------------------------------------------------------------------
---- @return table[] list of { spellID, tutorialKey, category, name, icon } for tracked spells the player currently knows.
+--- @return table[] list of { spellID, tutorialKey, category, priority, name, icon } for tracked spells the player currently knows.
 function AM:GetKnownSpells()
     local _, classFile = UnitClass("player")
     local list = {}
@@ -216,8 +346,77 @@ function AM:BuildKnownSpellSnapshot()
     return snap
 end
 
+local SPELLBOOK_BULK_NEW_THRESHOLD = 18
+
+--- Diff the player spellbook against the last scan to find spellIDs that appeared but are not in AM.Spells.PALADIN.
+--- Throttled and bulk-guarded so spellbook load spikes do not flood the UI.
+function AM:DetectUntrackedSpellbookNewSpells()
+    local _, classFile = UnitClass("player")
+    if classFile ~= "PALADIN" then
+        return
+    end
+
+    local now = GetTime()
+
+    self.spellbookIdSnapshot = self.spellbookIdSnapshot or {}
+    local bookSnap = CollectSpellbookSpellIds()
+
+    if not self._spellbookSpellSnapshotReady then
+        wipe(self.spellbookIdSnapshot)
+        for sid in pairs(bookSnap) do
+            self.spellbookIdSnapshot[sid] = true
+        end
+        self._spellbookSpellSnapshotReady = true
+        DebugSpellDetect("Spellbook snapshot seeded (untracked-learn detection ready).")
+        return
+    end
+
+    local oldB = {}
+    for sid, v in pairs(self.spellbookIdSnapshot) do
+        oldB[sid] = v
+    end
+
+    local newList = {}
+    for sid in pairs(bookSnap) do
+        if not oldB[sid] then
+            newList[#newList + 1] = sid
+        end
+    end
+
+    if #newList > SPELLBOOK_BULK_NEW_THRESHOLD then
+        wipe(self.spellbookIdSnapshot)
+        for sid in pairs(bookSnap) do
+            self.spellbookIdSnapshot[sid] = true
+        end
+        DebugSpellDetect("Spellbook bulk change (" .. #newList .. " new); reseed without untracked notice.")
+        return
+    end
+
+    table.sort(newList)
+
+    local pickedUntracked
+    for _, sid in ipairs(newList) do
+        if not IsSpellInPaladinRegistry(self, sid) then
+            pickedUntracked = sid
+            break
+        end
+    end
+
+    wipe(self.spellbookIdSnapshot)
+    for sid in pairs(bookSnap) do
+        self.spellbookIdSnapshot[sid] = true
+    end
+
+    if pickedUntracked then
+        self._unknownUntrackedSpellID = pickedUntracked
+        self._unknownUntrackedUntil = now + MENTOR_SPELL_FOCUS_SECONDS
+        DebugSpellDetect("Untracked spellbook learn: " .. tostring(pickedUntracked))
+    end
+end
+
 --- Compares the previous snapshot to the current one, updates the saved snapshot, sets latestLearnedSpellID
---- when at least one new spell appears (first new in PALADIN registry order if several), and stages UI data.
+--- when at least one new spell appears (first new in PALADIN registry order — highest beginner priority first
+--- in the table — if several), and stages UI data.
 --- First run seeds the snapshot without reporting anything as new (avoids login spam).
 --- @return number[] newSpellIDs in registry order
 function AM:DetectNewSpells()
@@ -234,6 +433,7 @@ function AM:DetectNewSpells()
         self._knownSpellSnapshotReady = true
         self.pendingNewSpellIds = nil
         DebugSpellDetect("DetectNewSpells: initial snapshot seeded (no new spells reported).")
+        self:DetectUntrackedSpellbookNewSpells()
         return {}
     end
 
@@ -263,6 +463,10 @@ function AM:DetectNewSpells()
     if #newIds >= 1 then
         self.latestLearnedSpellID = newIds[1]
         self._newAbilityBanner = true
+        self._mentorExplainSpellID = newIds[1]
+        self._mentorExplainUntil = GetTime() + MENTOR_SPELL_FOCUS_SECONDS
+        self._unknownUntrackedSpellID = nil
+        self._unknownUntrackedUntil = nil
         local pending = {}
         for i, sid in ipairs(newIds) do
             pending[i] = sid
@@ -284,12 +488,66 @@ function AM:DetectNewSpells()
         DebugSpellDetect("DetectNewSpells: no new tracked spells this pass.")
     end
 
+    self:DetectUntrackedSpellbookNewSpells()
     return newIds
 end
 
---- Spell card: prefer the latest detected new spell while it is still known; otherwise Crusader-first fallback.
---- @return table|nil { spellID, tutorialKey, category, name, icon }
+--- Spell card: mentor focus on a tracked new spell, then an off-registry spellbook learn (UNKNOWN_SPELL_NOTICE),
+--- then latest tracked learn, else highest-priority known.
+--- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetSpellCardDisplayInfo()
+    local now = GetTime()
+    if self._mentorExplainUntil and now >= self._mentorExplainUntil then
+        self._mentorExplainUntil = nil
+        self._mentorExplainSpellID = nil
+    end
+
+    if self._unknownUntrackedUntil and now >= self._unknownUntrackedUntil then
+        self._unknownUntrackedUntil = nil
+        self._unknownUntrackedSpellID = nil
+    end
+
+    local explainId = self._mentorExplainSpellID
+    if explainId and self._mentorExplainUntil and now < self._mentorExplainUntil then
+        if not self:IsSpellKnownSafe(explainId) then
+            self._mentorExplainUntil = nil
+            self._mentorExplainSpellID = nil
+        else
+            local db = self.Spells and self.Spells.PALADIN
+            if db then
+                for _, row in ipairs(db) do
+                    if row and row.spellID == explainId then
+                        local info = BuildSpellDisplayInfo(self, row)
+                        if info then
+                            return info
+                        end
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    local unkId = self._unknownUntrackedSpellID
+    local unkUntil = self._unknownUntrackedUntil
+    if unkId and unkUntil and now < unkUntil then
+        if not self:IsSpellKnownSafe(unkId) or IsSpellInPaladinRegistry(self, unkId) then
+            self._unknownUntrackedSpellID = nil
+            self._unknownUntrackedUntil = nil
+        else
+            local nm, ic = self:GetSpellDisplayInfo(unkId)
+            return {
+                spellID = unkId,
+                tutorialKey = "UNKNOWN_SPELL_NOTICE",
+                category = "unknown",
+                priority = -2,
+                name = nm,
+                icon = ic,
+                isUnknownUntracked = true,
+            }
+        end
+    end
+
     local latest = self.latestLearnedSpellID
     if latest and self:IsSpellKnownSafe(latest) then
         local db = self.Spells and self.Spells.PALADIN
@@ -308,10 +566,12 @@ function AM:GetSpellCardDisplayInfo()
 end
 
 --------------------------------------------------------------------------------
--- First known class spell (for spell card UI)
+-- Default spell card (highest beginner priority among known registry spells)
 --------------------------------------------------------------------------------
---- Returns one display-ready Paladin registry spell: Crusader Strike if known, else the first known row in DB order.
---- @return table|nil { spellID, tutorialKey, category, name, icon }
+--- Returns one display-ready Paladin registry spell: the **known** spell with the highest `priority` value.
+--- Ties on `priority`: the earlier row in AM.Spells.PALADIN wins (deterministic).
+--- Future: rotation and mentor pacing will use category + priority together; this is the non-“new spell” default card.
+--- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetFirstKnownClassSpell()
     local _, classFile = UnitClass("player")
     if classFile ~= "PALADIN" then
@@ -323,21 +583,21 @@ function AM:GetFirstKnownClassSpell()
         return nil
     end
 
-    for _, row in ipairs(db) do
-        if row and row.spellID == CRUSADER_STRIKE_SPELL_ID then
-            local info = BuildSpellDisplayInfo(self, row)
-            if info then
-                return info
+    local bestInfo
+    local bestPriority = -math.huge
+    local bestIndex = math.huge
+
+    for index, row in ipairs(db) do
+        local info = BuildSpellDisplayInfo(self, row)
+        if info then
+            local pr = info.priority or 0
+            if pr > bestPriority or (pr == bestPriority and index < bestIndex) then
+                bestPriority = pr
+                bestIndex = index
+                bestInfo = info
             end
         end
     end
 
-    for _, row in ipairs(db) do
-        local info = BuildSpellDisplayInfo(self, row)
-        if info then
-            return info
-        end
-    end
-
-    return nil
+    return bestInfo
 end
