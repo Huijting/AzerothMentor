@@ -65,7 +65,8 @@ do
     M.PALADIN_RETRIBUTION[10] = { milestoneKey = "PALADIN_RET_L10", spellID = 20271 }
     M.PALADIN_RETRIBUTION[11] = { milestoneKey = "PALADIN_RET_L11", spellID = 35395 }
     M.PALADIN_RETRIBUTION[12] = { milestoneKey = "PALADIN_RET_L12", spellID = 184575 }
-    M.PALADIN_RETRIBUTION[13] = { milestoneKey = "PALADIN_RET_L13", spellID = 35395 }
+    -- Conceptual melee-range lesson; do not gate on a specific spell (Crusader Strike ID can fail IsSpellKnownSafe in some cases while the UI still shows the spell).
+    M.PALADIN_RETRIBUTION[13] = { milestoneKey = "PALADIN_RET_L13", spellID = nil }
     M.PALADIN_RETRIBUTION[14] = { milestoneKey = "PALADIN_RET_L14", spellID = nil }
     M.PALADIN_RETRIBUTION[15] = { milestoneKey = "PALADIN_RET_L15", spellID = nil }
     M.PALADIN_RETRIBUTION[16] = { milestoneKey = "PALADIN_RET_L16", spellID = nil }
@@ -152,6 +153,68 @@ function AM:GetCurrentLevelMilestone()
     end
 
     return nil
+end
+
+--- Why no milestone is active (for /am status when `AM.DEBUG_MILESTONES` is on). Does not change resolver behavior.
+--- @return string
+function AM:GetLevelMilestoneDebugReason()
+    if UnitAffectingCombat("player") then
+        return "in combat (milestones only out of combat)"
+    end
+    local level = UnitLevel("player") or 0
+    if level < 1 then
+        return "invalid player level"
+    end
+    local gate = math.min(level, 20)
+    local classFile, specId = GetPlayerClassSpec()
+    local M = AzerothMentor_LevelMilestones
+    if not M then
+        return "no milestone definition table"
+    end
+
+    if specId == SPEC_ID_RETRIBUTION and classFile == "PALADIN" then
+        local specTable = M.PALADIN_RETRIBUTION
+        local rawSpec = specTable and specTable[gate]
+        if not rawSpec then
+            return string.format("no Retribution milestone row for current level (gate %d)", gate)
+        end
+        local mk = rawSpec.milestoneKey
+        if MilestoneSeen(mk) then
+            return string.format("already seen (%s)", mk)
+        end
+        if not MilestoneSpellKnown(rawSpec.spellID) then
+            return string.format("spell not known for gate (spellID=%s)", tostring(rawSpec.spellID))
+        end
+        local titleKey = "MILESTONE_" .. mk .. "_TITLE"
+        if L[titleKey] == titleKey then
+            return string.format("missing locale (%s)", titleKey)
+        end
+        return "Retribution row should be active (unexpected nil - report as bug)"
+    end
+
+    if not classFile or classFile == "" then
+        return "could not read player class"
+    end
+
+    local classTable = M[classFile]
+    if not classTable then
+        return string.format("no class milestone table for %s", tostring(classFile))
+    end
+    local classDef = classTable[gate]
+    if not classDef then
+        return string.format("no class milestone row for gate %d (specId=%s)", gate, tostring(specId))
+    end
+    if MilestoneSeen(classDef.milestoneKey) then
+        return string.format("class milestone already seen (%s)", classDef.milestoneKey)
+    end
+    if not MilestoneSpellKnown(classDef.spellID) then
+        return string.format("class milestone spell not known (spellID=%s)", tostring(classDef.spellID))
+    end
+    local titleKey = "MILESTONE_" .. classDef.milestoneKey .. "_TITLE"
+    if L[titleKey] == titleKey then
+        return string.format("missing locale (%s)", titleKey)
+    end
+    return "class milestone row should be active (unexpected)"
 end
 
 --- Card payload for the mentor spell card (type LEVEL_MILESTONE).

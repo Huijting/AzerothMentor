@@ -60,6 +60,8 @@ if GetLocale() == "nlNL" then
         "Als Retribution gebruik je Judgment vaak op middelbare afstand. Het raakt je doelwit en maakt je volgende Holy Power-uitgaven sterker."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict gebruikt Holy Power voor een harde single-target aanval. Bouw eerst Holy Power op en gebruik het als je één groot slag wilt uitdelen."
+    L.SPELL_RET_DIVINE_STORM =
+        "Divine Storm gebruikt Holy Power om meerdere vijanden dichtbij te raken. Gebruik Templar's Verdict tegen één vijand, en Divine Storm als je tegen meerdere vijanden tegelijk vecht.\n\nIs er maar één vijand, blijf dan Templar's Verdict gebruiken. Staan er meerdere vijanden dichtbij, dan wordt Divine Storm nuttig."
     L.SPELL_RET_CONSECRATED_BLADE =
         "Consecrated Blade is een passief effect. Dat betekent dat het je Paladin automatisch verbetert; het is geen nieuwe knop die je hoeft in te drukken.\n\nBlijf je normale Retribution-ritme gebruiken: bouw Holy Power op en geef het daarna uit."
     L.SPELL_RET_BLADE_OF_JUSTICE =
@@ -78,6 +80,8 @@ if GetLocale() == "nlNL" then
         "Word of Glory gebruikt Holy Power om jou of een bondgenoot te genezen. Gebruik het als jij of iemand dichtbij gewond is."
     L.SPELL_PALADIN_HAND_OF_RECKONING =
         "Hand of Reckoning daagt een vijand uit, waardoor die zich op jou richt. Wees voorzichtig: dit is vooral nuttig als je tank bent."
+    L.SPELL_PALADIN_REDEMPTION =
+        "Met Redemption kun je een dode vriendelijke speler weer tot leven brengen. Dit is vooral handig in groepen nadat iemand is gestorven.\n\nJe gebruikt Redemption meestal buiten gevecht. Het hoort niet bij je normale damage-rotatie."
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."

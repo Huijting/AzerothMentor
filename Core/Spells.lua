@@ -261,6 +261,13 @@ AM.Spells.PALADIN = {
         priority = 94,
     }, -- Templar's Verdict (Retribution)
     {
+        spellID = 53385,
+        tutorialKey = "SPELL_RET_DIVINE_STORM",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "aoe",
+        priority = 72,
+    }, -- Divine Storm (often from talents; optional multi-target Holy Power spender)
+    {
         spellID = 255937,
         tutorialKey = "SPELL_RET_WAKE_OF_ASHES",
         specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
@@ -303,6 +310,12 @@ AM.Spells.PALADIN = {
         category = "utility",
         priority = 65,
     }, -- Hand of Reckoning
+    {
+        spellID = 7328,
+        tutorialKey = "SPELL_PALADIN_REDEMPTION",
+        category = "utility",
+        priority = 62,
+    }, -- Redemption (resurrect dead allies; not a combat damage button)
 }
 
 --------------------------------------------------------------------------------

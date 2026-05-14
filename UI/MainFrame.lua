@@ -554,12 +554,14 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
             end
         end
         local mileStr = "n/a"
+        local mileWasNo = false
         if type(AM.GetCurrentLevelMilestone) == "function" then
             local ok, m = pcall(AM.GetCurrentLevelMilestone, AM)
             if ok and type(m) == "table" and m.milestoneKey then
                 mileStr = string.format("yes (%s)", tostring(m.milestoneKey))
             elseif ok then
                 mileStr = "no"
+                mileWasNo = true
             end
         end
         local cardStr = "n/a"
@@ -574,6 +576,12 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
             end
         end
         print(string.format("[Azeroth Mentor] status: level=%d class=%s (%s) spec=%s (%s) holyPower=%s milestone=%s card=%s", level, tostring(className), classFile, tostring(specLine), tostring(specId or "?"), hpStr, mileStr, cardStr))
+        if mileWasNo and AM.DEBUG_MILESTONES and type(AM.GetLevelMilestoneDebugReason) == "function" then
+            local okR, r = pcall(AM.GetLevelMilestoneDebugReason, AM)
+            if okR and type(r) == "string" and r ~= "" then
+                print("[Azeroth Mentor] milestone detail: " .. r)
+            end
+        end
         return
     end
 

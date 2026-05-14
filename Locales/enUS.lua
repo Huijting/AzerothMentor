@@ -61,6 +61,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "As Retribution, use Judgment often from medium range. It hurts your target and makes your next Holy Power spenders hit harder."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict spends Holy Power for a strong single-target attack. Build Holy Power with builders first, then use it when you want a big hit."
+    L.SPELL_RET_DIVINE_STORM =
+        "Divine Storm spends Holy Power to hit multiple nearby enemies. Use Templar's Verdict for one enemy, and Divine Storm when you are fighting several enemies close together.\n\nIf there is only one enemy, keep using Templar's Verdict. If several enemies are near you, Divine Storm becomes useful."
     L.SPELL_RET_CONSECRATED_BLADE =
         "Consecrated Blade is a passive effect. That means it improves your Paladin automatically; it is not a new button you need to press.\n\nKeep using your normal Retribution rhythm: build Holy Power, then spend it."
     L.SPELL_RET_BLADE_OF_JUSTICE =
@@ -79,6 +81,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Word of Glory spends Holy Power to heal you or an ally. Use it when you or someone nearby is hurt."
     L.SPELL_PALADIN_HAND_OF_RECKONING =
         "Hand of Reckoning taunts an enemy, making it focus on you. Be careful: this is mostly useful when you are tanking."
+    L.SPELL_PALADIN_REDEMPTION =
+        "Redemption lets you bring a dead friendly player back to life. This is useful in groups after someone dies.\n\nYou usually use Redemption outside combat. It is not part of your normal damage rotation."
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."
