@@ -70,6 +70,8 @@ if GetLocale() == "nlNL" then
         "Wake of Ashes raakt vijanden in een kegel voor je en geeft Holy Power. Gebruik het als meerdere vijanden bij elkaar staan of je snel Holy Power nodig hebt."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is een snelle genezing voor jou of een bondgenoot. Gebruik het als het leven laag wordt."
+    L.SPELL_PALADIN_DIVINE_STEED =
+        "Divine Steed laat je korte tijd sneller bewegen. Het is handig om sneller bij vijanden te komen, uit gevaar te bewegen of iets sneller te reizen.\n\nGebruik Divine Steed als je snel moet bewegen. Het hoort niet bij je normale damage-rotatie."
     L.SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS =
         "Shield of the Righteous gebruikt Holy Power om vijanden voor je te raken en je pantser kort sterk te verhogen. Gebruik het bij zwaar inkomend schade (Bescherming, met schild)."
     L.SPELL_PALADIN_HAMMER_OF_JUSTICE =
@@ -114,7 +116,7 @@ if GetLocale() == "nlNL" then
     L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment als Retribution"
     L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
     L.MILESTONE_PALADIN_RET_L10_BODY =
-        "Judgment is een belangrijke Holy Power-builder. Je kunt ermee op afstand beginnen en je volgende aanvallen voorbereiden."
+        "Judgment is een belangrijke Holy Power-builder. Je kunt ermee op afstand beginnen en je volgende aanvallen voorbereiden.\n\nTalenten kunnen overweldigend ogen, maar je hoeft de hele boom nog niet te snappen. Begin met eenvoudige keuzes die vaardigheden ondersteunen die je al gebruikt."
     L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Begin je volgende gevecht met Judgment, loop er dan naartoe en gebruik Crusader Strike."
     L.MILESTONE_PALADIN_RET_L11_TITLE = "Eerst opbouwen, dan uitgeven"
     L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
@@ -137,12 +139,12 @@ if GetLocale() == "nlNL" then
         "Vaardigheden hebben cooldowns. Is een knop even niet beschikbaar, gebruik dan een andere aanbevolen vaardigheid in plaats van steeds hetzelfde te spammen."
     L.MILESTONE_PALADIN_RET_L14_INSTRUCTION =
         "Volg in gevecht de mentor-kaart en wissel van knop als je huidige vaardigheid nog niet klaar is."
-    L.MILESTONE_PALADIN_RET_L15_TITLE = "Je eerste talenten"
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Talent-check"
     L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
     L.MILESTONE_PALADIN_RET_L15_BODY =
-        "Talenten kunnen in het begin overweldigend ogen. Je hoeft de hele boom nog niet te snappen. Kies nu liever eenvoudige talenten die vaardigheden verbeteren die je al gebruikt, vooral passieve schade-talenten."
+        "Je hebt nu een tijdje je basis-Retribution-ritme gebruikt. Talenten kunnen extra kracht of nieuwe knoppen geven, maar je hoeft nog geen perfecte keuzes te maken."
     L.MILESTONE_PALADIN_RET_L15_INSTRUCTION =
-        "Voeg nog geen stapels nieuwe actieve knoppen toe tot je je prettig voelt bij Judgment, Crusader Strike, Blade of Justice en Templar's Verdict."
+        "Kies voorlopig liever eenvoudige of passieve talenten die vaardigheden verbeteren die je al gebruikt. Voeg niet te veel nieuwe actieve knoppen toe tot het basis-ritme van opbouwen en uitgeven prettig voelt."
     L.MILESTONE_PALADIN_RET_L16_TITLE = "Blijf Holy Power opbouwen"
     L.MILESTONE_PALADIN_RET_L16_SUBTITLE = "Retribution · Level 16"
     L.MILESTONE_PALADIN_RET_L16_BODY =

@@ -299,6 +299,12 @@ AM.Spells.PALADIN = {
         priority = 78,
     }, -- Flash of Light
     {
+        spellID = 190784,
+        tutorialKey = "SPELL_PALADIN_DIVINE_STEED",
+        category = "utility",
+        priority = 63,
+    }, -- Divine Steed (movement / escape; not a damage rotation button)
+    {
         spellID = 853,
         tutorialKey = "SPELL_PALADIN_HAMMER_OF_JUSTICE",
         category = "crowdcontrol",

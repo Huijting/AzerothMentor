@@ -71,6 +71,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Wake of Ashes damages enemies in a cone in front of you and gives Holy Power. Use it when several enemies are grouped or you need Holy Power quickly."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
+    L.SPELL_PALADIN_DIVINE_STEED =
+        "Divine Steed makes you move faster for a short time. It is useful for reaching enemies, moving out of danger, or traveling a little faster.\n\nUse Divine Steed when you need to move quickly. It is not part of your normal damage rotation."
     L.SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS =
         "Shield of the Righteous spends Holy Power to hit enemies in front of you and greatly raises your armor for a short time. Use it when you are taking heavy damage (Protection, with a shield)."
     L.SPELL_PALADIN_HAMMER_OF_JUSTICE =
@@ -115,7 +117,7 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment in Retribution"
     L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
     L.MILESTONE_PALADIN_RET_L10_BODY =
-        "Judgment is one of your important Holy Power builders. It lets you start a fight from range and helps prepare your next attacks."
+        "Judgment is one of your important Holy Power builders. It lets you start a fight from range and helps prepare your next attacks.\n\nTalents may look overwhelming, but you do not need to understand the whole tree yet. Start with simple choices that support abilities you already use."
     L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Open your next fight with Judgment, then move in and use Crusader Strike."
     L.MILESTONE_PALADIN_RET_L11_TITLE = "Build, then spend"
     L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
@@ -138,12 +140,12 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Abilities have cooldowns. If one button is unavailable, use another recommended ability instead of pressing the same one repeatedly."
     L.MILESTONE_PALADIN_RET_L14_INSTRUCTION =
         "During combat, follow the mentor card and switch buttons when your current ability is not ready."
-    L.MILESTONE_PALADIN_RET_L15_TITLE = "Your first talents"
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Talent checkpoint"
     L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
     L.MILESTONE_PALADIN_RET_L15_BODY =
-        "Talents can look overwhelming at first. You do not need to understand the whole tree yet. For now, prefer simple talents that improve abilities you already use, especially passive damage talents."
+        "You have now used your basic Retribution rhythm for a while. Talents can add power or new buttons, but you do not need to make perfect choices yet."
     L.MILESTONE_PALADIN_RET_L15_INSTRUCTION =
-        "Avoid adding too many new active buttons until you are comfortable with Judgment, Crusader Strike, Blade of Justice, and Templar's Verdict."
+        "For now, prefer simple or passive talents that improve abilities you already use. Avoid adding too many new active buttons until the basic build-and-spend rhythm feels comfortable."
     L.MILESTONE_PALADIN_RET_L16_TITLE = "Keep building Holy Power"
     L.MILESTONE_PALADIN_RET_L16_SUBTITLE = "Retribution · Level 16"
     L.MILESTONE_PALADIN_RET_L16_BODY =
