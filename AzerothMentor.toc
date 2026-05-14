@@ -10,6 +10,7 @@ Locales/nlNL.lua
 Core/Player.lua
 Core/Spells.lua
 Classes/Paladin/Retribution.lua
+Classes/Paladin/RetributionCombat.lua
 UI/MainFrame.lua
 UI/MinimapButton.lua
 Core/Events.lua

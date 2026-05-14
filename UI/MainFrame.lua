@@ -355,7 +355,7 @@ function AM:ToggleMainFrame()
 end
 
 --------------------------------------------------------------------------------
--- Slash command: /am toggles visibility; /am scale reset restores default scale
+-- Slash command: /am toggles visibility; /am scale reset restores default scale; /am retstate prints Retribution combat snapshot
 --------------------------------------------------------------------------------
 SLASH_AZEROTHMENTOR1 = "/am"
 
@@ -367,6 +367,13 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         AM.db.uiScale = ClampScale(1.0)
         AzerothMentorFrame:SetScale(AM.db.uiScale)
         PrintUIScale(AM.db.uiScale)
+        return
+    end
+
+    if lower == "retstate" then
+        if AM.RetributionCombat and AM.RetributionCombat.PrintStateToChat then
+            AM.RetributionCombat:PrintStateToChat()
+        end
         return
     end
 
