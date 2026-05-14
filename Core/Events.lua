@@ -24,6 +24,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
         if arg1 ~= AM.name then
             return
         end
+        if type(AM.EnsureMilestoneDB) == "function" then
+            AM:EnsureMilestoneDB()
+        end
     elseif event == "UNIT_POWER_FREQUENT" then
         if arg1 == "player" and AzerothMentorFrame and AzerothMentorFrame:IsShown() then
             AM:UpdateMainFrame({ skipDetect = true })
@@ -37,10 +40,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
     elseif event == "SPELLS_CHANGED" then
         -- Spellbook updates after level-ups usually land here; diff before refreshing the UI.
         local _, classFile = UnitClass("player")
-        if classFile ~= "PALADIN" then
-            return
+        if classFile == "PALADIN" then
+            AM:DetectNewSpells()
         end
-        AM:DetectNewSpells()
         AM:UpdateMainFrame({ skipDetect = true })
         return
     elseif event == "PLAYER_LEVEL_UP" then

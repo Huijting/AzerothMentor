@@ -3,6 +3,7 @@
 ## Notes: Beginner mentor addon for World of Warcraft
 ## Author: Inchy
 ## Version: 0.0.1
+## SavedVariables: AzerothMentorDB
 
 Core/Main.lua
 Locales/enUS.lua
@@ -11,6 +12,7 @@ Core/Player.lua
 Core/Spells.lua
 Classes/Paladin/Retribution.lua
 Classes/Paladin/RetributionCombat.lua
+AM_LevelMilestones.lua
 UI/MainFrame.lua
 UI/MinimapButton.lua
 Core/Events.lua

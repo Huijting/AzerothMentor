@@ -79,6 +79,52 @@ if GetLocale() == "nlNL" then
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."
+    L.MILESTONE_ACTION_GOT_IT = "Begrepen"
+    L.MILESTONE_TIP_LABEL = "Level mijlpaal"
+    L.MILESTONE_PALADIN_L1_TITLE = "Welkom, Paladin"
+    L.MILESTONE_PALADIN_L1_SUBTITLE = "Level 1"
+    L.MILESTONE_PALADIN_L1_BODY =
+        "Je draagt plaatpantser en vecht op melee-afstand. Je toolkit combineert schade, nut en zelfgenezing naarmate je groeit."
+    L.MILESTONE_PALADIN_L1_INSTRUCTION = "Oefen bewegen, een doelwit kiezen en je eerste aanval op een oefenpop of makkelijke quest."
+    L.MILESTONE_PALADIN_L2_TITLE = "Sterker worden"
+    L.MILESTONE_PALADIN_L2_SUBTITLE = "Level 2"
+    L.MILESTONE_PALADIN_L2_BODY = "Elk level geeft stats en vaak nieuwe vaardigheden. Kijk in je spellbook als je levelt."
+    L.MILESTONE_PALADIN_L2_INSTRUCTION = "Open je spellbook en lees wat elke vaardigheid doet, ook als je ze nog niet allemaal gebruikt."
+    L.MILESTONE_PALADIN_L3_TITLE = "Basis van gevecht"
+    L.MILESTONE_PALADIN_L3_SUBTITLE = "Level 3"
+    L.MILESTONE_PALADIN_L3_BODY =
+        "Blijf binnen bereik van je doelwit, let op je levensbalk en gebruik verdediging of genezing als het misgaat."
+    L.MILESTONE_PALADIN_L3_INSTRUCTION = "Vecht eerst tegen één vijand tegelijk tot je toetsen comfortabel aanvoelen."
+    L.MILESTONE_PALADIN_L5_TITLE = "Quest flow"
+    L.MILESTONE_PALADIN_L5_SUBTITLE = "Level 5"
+    L.MILESTONE_PALADIN_L5_BODY =
+        "Je wisselt tussen meerdere vaardigheden. Tooltips lezen nu voorkomt verwarring als je rotatie drukker wordt."
+    L.MILESTONE_PALADIN_L5_INSTRUCTION = "Lees na elke nieuwe spell kort de tooltip in je spellbook."
+    L.MILESTONE_PALADIN_L10_TITLE = "Grote mijlpaal: specialisaties"
+    L.MILESTONE_PALADIN_L10_SUBTITLE = "Level 10"
+    L.MILESTONE_PALADIN_L10_BODY =
+        "Op level 10 kies je een specialisatie: Retribution (schade), Protection (tank) of Holy (healer). De mentor volgt dat pad."
+    L.MILESTONE_PALADIN_L10_INSTRUCTION = "Open Specialisatie & Talenten en kies de rol die je eerst wilt leren."
+    L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment als Retribution"
+    L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
+    L.MILESTONE_PALADIN_RET_L10_BODY =
+        "Judgment raakt op middelbare afstand en versterkt je volgende Holy Power-uitgaven. Kern van je rotatie."
+    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Gebruik Judgment vroeg in het gevecht zodat je spenders profiteren."
+    L.MILESTONE_PALADIN_RET_L11_TITLE = "Crusader Strike"
+    L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
+    L.MILESTONE_PALADIN_RET_L11_BODY =
+        "Crusader Strike is een melee-builder die Holy Power geeft. Combineer met Judgment voor grotere klappen."
+    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Blijf in melee en weef Crusader Strike tussen andere vaardigheden."
+    L.MILESTONE_PALADIN_RET_L12_TITLE = "Blade of Justice"
+    L.MILESTONE_PALADIN_RET_L12_SUBTITLE = "Retribution · Level 12"
+    L.MILESTONE_PALADIN_RET_L12_BODY =
+        "Blade of Justice bouwt Holy Power op afstand, handig als je niet veilig kunt meleeën."
+    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "Gebruik het als je Holy Power nodig hebt maar geen Crusader Strike kunt riskeren."
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Templar's Verdict"
+    L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
+    L.MILESTONE_PALADIN_RET_L15_BODY =
+        "Templar's Verdict gebruikt Holy Power voor zware single-target schade. Bouw eerst op, spend daarna."
+    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION = "Als je Holy Power vol is, gebruik Templar's Verdict voor een grote piek."
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Linksklik om de mentor te openen of sluiten."
 

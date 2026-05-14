@@ -32,7 +32,7 @@ end
 local DEBUG_COMBAT_SPELL_CARD = false
 
 --- Logs GetCombatRecommendation snapshot vs branch + spell card chosen.
---- @param branch string which resolver path returned (mentor_explain, unknown_untracked, latest_learned, combat_mentor, first_known)
+--- @param branch string which resolver path returned (mentor_explain, unknown_untracked, latest_learned, combat_mentor, level_milestone, first_known)
 local function FinishSpellCardDisplay(self, result, branch)
     branch = branch or "default"
     if DEBUG_COMBAT_SPELL_CARD then
@@ -56,6 +56,11 @@ local function FinishSpellCardDisplay(self, result, branch)
                 tostring(final)
             )
         )
+    end
+    if AM.DEBUG_MILESTONES then
+        local ty = result and result.type or "nil"
+        local nm = result and (result.title or result.name) or "no title"
+        print("Azeroth Mentor card selected: " .. tostring(ty) .. " " .. tostring(nm))
     end
     return result
 end
@@ -653,8 +658,10 @@ function AM:GetRetributionMentorCombatSpellCard()
     return nil
 end
 
---- Spell card: mentor focus on a tracked new spell, then an off-registry spellbook learn (UNKNOWN_SPELL_NOTICE),
---- then latest tracked learn, then Retribution BUILD/SPEND mentor focus, else highest-priority known.
+--- Spell card priority:
+--- In combat: Retribution combat mentor when available.
+--- Out of combat: level milestone → mentor explain → unknown untracked → latest learned spotlight → default known.
+--- Spec onboarding stays in MainFrame (separate panel).
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetSpellCardDisplayInfo()
     local now = GetTime()
@@ -668,6 +675,22 @@ function AM:GetSpellCardDisplayInfo()
     if self._unknownUntrackedUntil and now >= self._unknownUntrackedUntil then
         self._unknownUntrackedUntil = nil
         self._unknownUntrackedSpellID = nil
+    end
+
+    -- 1) Retribution combat mentor card (only while in combat; OOC returns nil from resolver).
+    if UnitAffectingCombat("player") then
+        local combatFocus = self:GetRetributionMentorCombatSpellCard()
+        if combatFocus then
+            return FinishSpellCardDisplay(self, combatFocus, "combat_mentor")
+        end
+    end
+
+    -- 2) Level milestone (OOC only inside GetCurrentLevelMilestone); must beat latest-learned spotlight.
+    if type(self.GetCurrentLevelMilestoneCard) == "function" then
+        local milestone = self:GetCurrentLevelMilestoneCard()
+        if milestone then
+            return FinishSpellCardDisplay(self, milestone, "level_milestone")
+        end
     end
 
     local explainId = self._mentorExplainSpellID
@@ -712,7 +735,7 @@ function AM:GetSpellCardDisplayInfo()
         end
     end
 
-    -- While mentor spotlight is active, explain branch above returns first. After it ends, latestLearnedSpellID is nil.
+    -- Latest tracked learn after explain/unknown windows (milestone already took priority when present).
     local latest = self.latestLearnedSpellID
     if latest and self:IsSpellKnownSafe(latest) then
         local db = self.Spells and self.Spells.PALADIN
@@ -726,12 +749,6 @@ function AM:GetSpellCardDisplayInfo()
                 end
             end
         end
-    end
-
-    -- Retribution: replaces default fallback only (not explain / unknown / latest spotlight).
-    local combatFocus = self:GetRetributionMentorCombatSpellCard()
-    if combatFocus then
-        return FinishSpellCardDisplay(self, combatFocus, "combat_mentor")
     end
 
     return FinishSpellCardDisplay(self, self:GetFirstKnownClassSpell(), "first_known")

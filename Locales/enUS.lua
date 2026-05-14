@@ -80,6 +80,52 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."
+    L.MILESTONE_ACTION_GOT_IT = "Got it"
+    L.MILESTONE_TIP_LABEL = "Level milestone"
+    L.MILESTONE_PALADIN_L1_TITLE = "Welcome, Paladin"
+    L.MILESTONE_PALADIN_L1_SUBTITLE = "Level 1"
+    L.MILESTONE_PALADIN_L1_BODY =
+        "You wear plate armor and fight in melee range. Your toolkit mixes damage, utility, and self-healing as you grow."
+    L.MILESTONE_PALADIN_L1_INSTRUCTION = "Practice moving, selecting a target, and using your first attack on a training dummy or easy quest mob."
+    L.MILESTONE_PALADIN_L2_TITLE = "Growing stronger"
+    L.MILESTONE_PALADIN_L2_SUBTITLE = "Level 2"
+    L.MILESTONE_PALADIN_L2_BODY = "Each level unlocks stats and often new abilities. Check your spellbook when you ding."
+    L.MILESTONE_PALADIN_L2_INSTRUCTION = "Open your spellbook and read what each ability does, even if you do not use them all yet."
+    L.MILESTONE_PALADIN_L3_TITLE = "Basics of combat"
+    L.MILESTONE_PALADIN_L3_SUBTITLE = "Level 3"
+    L.MILESTONE_PALADIN_L3_BODY =
+        "Stay in range of your target, watch your health bar, and use defensive or healing buttons when things go wrong."
+    L.MILESTONE_PALADIN_L3_INSTRUCTION = "Try fighting one enemy at a time until your keybinds feel comfortable."
+    L.MILESTONE_PALADIN_L5_TITLE = "Questing flow"
+    L.MILESTONE_PALADIN_L5_SUBTITLE = "Level 5"
+    L.MILESTONE_PALADIN_L5_BODY =
+        "You will rotate through several abilities. Reading tooltips now saves confusion later when rotations get busier."
+    L.MILESTONE_PALADIN_L5_INSTRUCTION = "After each new spell, hover its icon in the spellbook and read the tooltip once."
+    L.MILESTONE_PALADIN_L10_TITLE = "Big milestone: specializations"
+    L.MILESTONE_PALADIN_L10_SUBTITLE = "Level 10"
+    L.MILESTONE_PALADIN_L10_BODY =
+        "At level 10 you choose a specialization: Retribution (damage), Protection (tank), or Holy (healer). Your mentor lessons will follow that path."
+    L.MILESTONE_PALADIN_L10_INSTRUCTION = "Open Specialization & Talents and pick the role you want to learn first."
+    L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment in Retribution"
+    L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
+    L.MILESTONE_PALADIN_RET_L10_BODY =
+        "Judgment strikes from medium range and empowers your next Holy Power spenders. It is a core part of your rotation."
+    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Use Judgment early in a pull so your spenders benefit from its effect."
+    L.MILESTONE_PALADIN_RET_L11_TITLE = "Crusader Strike"
+    L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
+    L.MILESTONE_PALADIN_RET_L11_BODY =
+        "Crusader Strike is a melee builder that generates Holy Power. Pair it with Judgment to set up bigger hits."
+    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Stay in melee range and weave Crusader Strike between other abilities."
+    L.MILESTONE_PALADIN_RET_L12_TITLE = "Blade of Justice"
+    L.MILESTONE_PALADIN_RET_L12_SUBTITLE = "Retribution · Level 12"
+    L.MILESTONE_PALADIN_RET_L12_BODY =
+        "Blade of Justice builds Holy Power from range, helping when you cannot stick to the target for a melee swing."
+    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "Use it when you need Holy Power but cannot Crusader Strike safely."
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Templar's Verdict"
+    L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
+    L.MILESTONE_PALADIN_RET_L15_BODY =
+        "Templar's Verdict spends Holy Power for a strong single-target nuke. Build Holy Power first, then spend it here."
+    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION = "After builders fill your Holy Power bar, press Templar's Verdict for a big spike of damage."
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Left-click to open or close the mentor."
 

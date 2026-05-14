@@ -295,6 +295,12 @@ spellCardTip:SetSpacing(2)
 spellCardTip:SetTextColor(0.72, 0.78, 0.9)
 spellCardTip:EnableMouse(false)
 
+local milestoneAcceptBtn = CreateFrame("Button", nil, spellCard, "UIPanelButtonTemplate")
+milestoneAcceptBtn:SetSize(96, 22)
+milestoneAcceptBtn:SetPoint("BOTTOMRIGHT", spellCard, "BOTTOMRIGHT", -6, 6)
+milestoneAcceptBtn:SetFrameLevel(spellCard:GetFrameLevel() + 4)
+milestoneAcceptBtn:Hide()
+
 -- Optional footnote region (mentor teaching copy lives on the spell card; avoids duplicating Blizzard unlock banners).
 local learnedSpellText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 learnedSpellText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
@@ -470,6 +476,7 @@ function AM:UpdateMainFrame(opts)
     end
 
     local cardInfo = self:GetSpellCardDisplayInfo()
+    local isMilestone = cardInfo and cardInfo.type == "LEVEL_MILESTONE"
 
     local now = GetTime()
     local mentorExplainActive = self._mentorExplainUntil and now < self._mentorExplainUntil and self._mentorExplainSpellID
@@ -477,7 +484,8 @@ function AM:UpdateMainFrame(opts)
     local latestId = self.latestLearnedSpellID
     local showMentorTipLabel = cardInfo
         and (
-            (latestId and cardInfo.spellID == latestId and self:IsSpellKnownSafe(latestId))
+            isMilestone
+            or (latestId and cardInfo.spellID == latestId and self:IsSpellKnownSafe(latestId))
             or (mentorExplainActive and self._mentorExplainSpellID == cardInfo.spellID)
             or cardInfo.isUnknownUntracked
             or cardInfo.isRetCombatMentorFocus
@@ -503,7 +511,7 @@ function AM:UpdateMainFrame(opts)
     end
 
     if showMentorTipLabel then
-        spellCardLabel:SetText(L["MENTOR_TIP"])
+        spellCardLabel:SetText(isMilestone and L["MILESTONE_TIP_LABEL"] or L["MENTOR_TIP"])
         spellCardLabel:ClearAllPoints()
         spellCardLabel:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset)
         spellCardLabel:Show()
@@ -516,9 +524,15 @@ function AM:UpdateMainFrame(opts)
     end
 
     if showMentorTipLabel then
-        spellCard:SetHeight(64)
-        spellCardTip:SetFontObject(GameFontHighlight)
-        spellCardTip:SetSpacing(5)
+        if isMilestone then
+            spellCard:SetHeight(112)
+            spellCardTip:SetFontObject(GameFontHighlight)
+            spellCardTip:SetSpacing(4)
+        else
+            spellCard:SetHeight(64)
+            spellCardTip:SetFontObject(GameFontHighlight)
+            spellCardTip:SetSpacing(5)
+        end
     else
         spellCard:SetHeight(54)
         spellCardTip:SetFontObject(GameFontHighlightSmall)
@@ -527,13 +541,42 @@ function AM:UpdateMainFrame(opts)
 
     if cardInfo then
         spellCard:Show()
-        spellIconBtn.spellID = cardInfo.spellID
-        local dispName, dispIcon = self:GetSpellDisplayInfo(cardInfo.spellID)
-        spellIconTex:SetTexture(dispIcon)
-        spellCardName:SetText(dispName)
-        spellCardTip:SetText(L[cardInfo.tutorialKey])
+        if cardInfo.type == "LEVEL_MILESTONE" then
+            local sid = cardInfo.spellID
+            spellIconBtn.spellID = (sid and sid > 0) and sid or nil
+            if cardInfo.icon then
+                spellIconTex:SetTexture(cardInfo.icon)
+            end
+            local titleBlock = cardInfo.title or ""
+            if cardInfo.subtitle and cardInfo.subtitle ~= "" then
+                titleBlock = titleBlock .. "\n" .. cardInfo.subtitle
+            end
+            spellCardName:SetText(titleBlock)
+            local tip = cardInfo.body or ""
+            if cardInfo.instruction and cardInfo.instruction ~= "" then
+                tip = tip .. "\n\n" .. cardInfo.instruction
+            end
+            spellCardTip:SetWidth(CONTENT_WIDTH - 54 - 100)
+            spellCardTip:SetText(tip)
+            milestoneAcceptBtn:SetText(cardInfo.actionText or L["MILESTONE_ACTION_GOT_IT"])
+            milestoneAcceptBtn:Show()
+            milestoneAcceptBtn:SetScript("OnClick", function()
+                if cardInfo.onAccept then
+                    cardInfo.onAccept()
+                end
+            end)
+        else
+            milestoneAcceptBtn:Hide()
+            spellCardTip:SetWidth(CONTENT_WIDTH - 54)
+            spellIconBtn.spellID = cardInfo.spellID
+            local dispName, dispIcon = self:GetSpellDisplayInfo(cardInfo.spellID)
+            spellIconTex:SetTexture(dispIcon)
+            spellCardName:SetText(dispName)
+            spellCardTip:SetText(L[cardInfo.tutorialKey])
+        end
     else
         spellCard:Hide()
+        milestoneAcceptBtn:Hide()
         spellIconBtn.spellID = nil
     end
 
