@@ -13,6 +13,13 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.LOADED = "[Azeroth Mentor] Loaded successfully!"
     L.CLASS_BASICS = "Class Basics"
     L.CHOOSE_YOUR_PATH = "Choose Your Path"
+    L.SPEC_ONBOARDING_TITLE = L.CHOOSE_YOUR_PATH
+    L.SPEC_ONBOARD_PALADIN_RETRIBUTION =
+        "Retribution focuses on dealing damage with holy attacks."
+    L.SPEC_ONBOARD_PALADIN_PROTECTION =
+        "Protection focuses on defending allies and surviving enemy attacks."
+    L.SPEC_ONBOARD_PALADIN_HOLY =
+        "Holy focuses on healing allies and keeping the group alive."
     L.SPEC_TRAINING = "Spec Training"
     L.GUIDANCE_CLASS_BASICS = "Learn movement, combat, and survival."
     L.GUIDANCE_CHOOSE_PATH = "Choose a specialization to begin advanced training."
@@ -23,8 +30,11 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Tip: Open your Specialization & Talents window and choose a specialization."
     L.TUTORIAL_SPEC_TRAINING =
         "Tip: Watch your abilities and learn which buttons build and spend your main resource."
-    L.RET_GUIDANCE = "Retribution Paladin combat mentoring active."
-    L.RET_TUTORIAL = "Tip: Build Holy Power first, then spend it on powerful attacks."
+    L.RET_STAGE_TITLE = "Retribution Training"
+    L.RET_GUIDANCE =
+        "Retribution Paladins build Holy Power with basic attacks and spend it on stronger abilities."
+    L.RET_TUTORIAL =
+        "Try using Crusader Strike and Judgment first, then spend Holy Power on stronger attacks."
     L.LABEL_CHARACTER = "Character"
     L.LABEL_CLASS = "Class"
     L.LABEL_SPEC = "Spec"
@@ -40,6 +50,14 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Crusader Strike is a melee attack that builds Holy Power. Use it when you are close to your target."
     L.SPELL_PALADIN_JUDGMENT =
         "Judgment damages your enemy from range and helps your next Holy Power spenders hit harder."
+    L.SPELL_RET_JUDGMENT =
+        "As Retribution, use Judgment often from medium range. It hurts your target and makes your next Holy Power spenders hit harder."
+    L.SPELL_RET_TEMPLARS_VERDICT =
+        "Templar's Verdict spends Holy Power for a strong single-target attack. Build Holy Power with builders first, then use it when you want a big hit."
+    L.SPELL_RET_BLADE_OF_JUSTICE =
+        "Blade of Justice is a core builder: it generates Holy Power from range so you can spend it on finishers like Templar's Verdict."
+    L.SPELL_RET_WAKE_OF_ASHES =
+        "Wake of Ashes damages enemies in a cone in front of you and gives Holy Power. Use it when several enemies are grouped or you need Holy Power quickly."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
     L.SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS =

@@ -11,6 +11,13 @@ if GetLocale() == "nlNL" then
     L.LOADED = "[Azeroth Mentor] Succesvol geladen!"
     L.CLASS_BASICS = "Basis van je klasse"
     L.CHOOSE_YOUR_PATH = "Kies je pad"
+    L.SPEC_ONBOARDING_TITLE = "Kies Je Pad"
+    L.SPEC_ONBOARD_PALADIN_RETRIBUTION =
+        "Retribution richt zich op het uitdelen van schade met heilige aanvallen."
+    L.SPEC_ONBOARD_PALADIN_PROTECTION =
+        "Protection richt zich op het beschermen van bondgenoten en het overleven van aanvallen."
+    L.SPEC_ONBOARD_PALADIN_HOLY =
+        "Holy richt zich op het genezen van bondgenoten en het in leven houden van de groep."
     L.SPEC_TRAINING = "Specialisatie training"
     L.GUIDANCE_CLASS_BASICS = "Leer bewegen, vechten en overleven."
     L.GUIDANCE_CHOOSE_PATH = "Kies een specialisatie om verder te leren."
@@ -21,8 +28,11 @@ if GetLocale() == "nlNL" then
         "Tip: Open je Specialisatie & Talenten venster en kies een specialisatie."
     L.TUTORIAL_SPEC_TRAINING =
         "Tip: Let op je vaardigheden en leer welke knoppen je energie opbouwen en uitgeven."
-    L.RET_GUIDANCE = "Retribution Paladin gevechtshulp is actief."
-    L.RET_TUTORIAL = "Tip: Bouw eerst Holy Power op en gebruik die daarna voor sterke aanvallen."
+    L.RET_STAGE_TITLE = "Training: Retribution"
+    L.RET_GUIDANCE =
+        "Retribution Paladins bouwen Holy Power op met basisaanvallen en gebruiken het daarna voor sterkere vaardigheden."
+    L.RET_TUTORIAL =
+        "Gebruik eerst Crusader Strike en Judgment om Holy Power op te bouwen en gebruik daarna sterkere aanvallen."
     L.LABEL_CHARACTER = "Personage"
     L.LABEL_CLASS = "Klasse"
     L.LABEL_SPEC = "Specialisatie"
@@ -38,6 +48,14 @@ if GetLocale() == "nlNL" then
         "Crusader Strike is een melee-aanval die Holy Power opbouwt. Gebruik het als je dicht bij je doelwit bent."
     L.SPELL_PALADIN_JUDGMENT =
         "Judgment raakt je vijand op afstand en maakt je volgende Holy Power-uitgaven effectiever."
+    L.SPELL_RET_JUDGMENT =
+        "Als Retribution gebruik je Judgment vaak op middelbare afstand. Het raakt je doelwit en maakt je volgende Holy Power-uitgaven sterker."
+    L.SPELL_RET_TEMPLARS_VERDICT =
+        "Templar's Verdict gebruikt Holy Power voor een harde single-target aanval. Bouw eerst Holy Power op en gebruik het als je één groot slag wilt uitdelen."
+    L.SPELL_RET_BLADE_OF_JUSTICE =
+        "Blade of Justice is een belangrijke builder: het geeft Holy Power op afstand zodat je het kunt uitgeven op afmakers zoals Templar's Verdict."
+    L.SPELL_RET_WAKE_OF_ASHES =
+        "Wake of Ashes raakt vijanden in een kegel voor je en geeft Holy Power. Gebruik het als meerdere vijanden bij elkaar staan of je snel Holy Power nodig hebt."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is een snelle genezing voor jou of een bondgenoot. Gebruik het als het leven laag wordt."
     L.SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS =

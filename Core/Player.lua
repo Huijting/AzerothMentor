@@ -21,11 +21,43 @@ local SPEC_ID_RETRIBUTION_PALADIN = 70
 --------------------------------------------------------------------------------
 -- Internal helpers
 --------------------------------------------------------------------------------
+
+--- Coerce GetSpecialization() to a positive integer slot, or nil if none.
+--- Blizzard may return 0 (or nil) before a specialization is selected. In Lua, 0 is truthy,
+--- so callers must not rely on `if not GetSpecialization()` alone to mean "no spec".
+--- @param raw number|string|nil|false
+--- @return number|nil specIndex 1-based slot, or nil
+local function NormalizeSpecializationSlot(raw)
+    local n = tonumber(raw)
+    if not n or n < 1 or n ~= math.floor(n) then
+        return nil
+    end
+    return n
+end
+
+--- True when the player has both a valid spec slot and a non-empty display name from the API.
+--- @param specIndex number|nil normalized slot (>= 1) or nil
+--- @param trimmedDisplayName string
+--- @return boolean
+local function HasSelectedSpecialization(specIndex, trimmedDisplayName)
+    if not specIndex or specIndex < 1 then
+        return false
+    end
+    if not trimmedDisplayName or trimmedDisplayName == "" then
+        return false
+    end
+    return true
+end
+
+--- specIndex is nil until HasSelectedSpecialization is true (see GetPlayerState).
 local function ComputeMentorStage(level, specIndex)
+    -- Level 10 is the retail specialization unlock: mentor stage moves to CHOOSE_PATH until a spec is picked.
+    -- That choice switches guidance/tutorial and (with spec modules) later combat mentoring tone.
     if level < 10 then
         return STAGE_CLASS_BASICS
     end
-    if not specIndex then
+    -- specIndex should already be nil or >= 1 from GetPlayerState; reject < 1 defensively (0 is truthy in Lua).
+    if not specIndex or specIndex < 1 then
         return STAGE_CHOOSE_PATH
     end
     return STAGE_SPEC_TRAINING
@@ -45,6 +77,22 @@ local function GetStageTitle(stageKey)
         return L["SPEC_TRAINING"]
     end
     return UNKNOWN
+end
+
+--- Spec Training title override (e.g. Retribution Training). Falls back to GetStageTitle when no match.
+--- @param stageKey string
+--- @param classFile string
+--- @param specId number|nil
+--- @return string
+local function GetSpecTrainingStageTitle(stageKey, classFile, specId)
+    if stageKey ~= STAGE_SPEC_TRAINING then
+        return GetStageTitle(stageKey)
+    end
+    -- First spec-specific title: Retribution. Other specs keep SPEC_TRAINING until a module adds its own label.
+    if classFile == "PALADIN" and specId == SPEC_ID_RETRIBUTION_PALADIN then
+        return L["RET_STAGE_TITLE"]
+    end
+    return L["SPEC_TRAINING"]
 end
 
 --- Default guidance for a mentor stage (no spec module).
@@ -134,31 +182,38 @@ function AM:GetPlayerState()
     className = className or UNKNOWN
     classFile = classFile or ""
 
-    -- Normalize: no active spec slot (nil/false) or invalid index (0) = no specialization.
-    local specIndex = GetSpecialization()
-    if not specIndex or specIndex == 0 then
-        specIndex = nil
-    end
+    -- Specialization: normalize slot (nil / 0 / string "0" / invalid) and require a real display name.
+    -- Blizzard may return 0 before a specialization is selected; 0 is truthy in Lua, so never branch on `if not GetSpecialization()` alone.
+    -- The client can also report a positive slot index while the localized name is still empty (not committed / loading).
+    local rawSlot = GetSpecialization()
+    local specSlot = NormalizeSpecializationSlot(rawSlot)
 
+    local specIndex
     local specLine
     local specId
 
-    if not specIndex then
+    if not specSlot then
+        specIndex = nil
         specLine = L["SPEC_NOT_SELECTED"]
         specId = nil
     else
-        specId, specLine = GetSpecializationInfo(specIndex, false, false, nil)
-        -- Empty string is truthy in Lua; low-level / loading states can return "" — show localized placeholder.
+        specId, specLine = GetSpecializationInfo(specSlot, false, false, nil)
         local trimmed = specLine and strtrim(specLine) or ""
-        if trimmed == "" then
-            specLine = L["SPEC_NOT_SELECTED"]
-        else
+        if HasSelectedSpecialization(specSlot, trimmed) then
+            specIndex = specSlot
             specLine = trimmed
+        else
+            specIndex = nil
+            specLine = L["SPEC_NOT_SELECTED"]
+            specId = nil
         end
     end
 
     local stageKey = ComputeMentorStage(level, specIndex)
-    local stageTitle = GetStageTitle(stageKey)
+    local stageTitle = GetSpecTrainingStageTitle(stageKey, classFile, specId)
+
+    -- Paladin at level 10+ without a specialization: UI shows the "Choose Your Path" onboarding card (MainFrame).
+    local specOnboardingActive = (classFile == "PALADIN" and level >= 10 and not specIndex)
 
     -- Snapshot passed into spec modules (guidance/tutorial filled next).
     local baseState = {
@@ -171,6 +226,7 @@ function AM:GetPlayerState()
         specId = specId,
         stageKey = stageKey,
         stageTitle = stageTitle,
+        specOnboardingActive = specOnboardingActive,
     }
 
     local guidance = ResolveGuidance(baseState)
@@ -180,4 +236,17 @@ function AM:GetPlayerState()
     baseState.tutorial = tutorial
 
     return baseState
+end
+
+--- True when the player has a valid specialization slot and a non-empty display name from the API.
+--- Uses the same rules as GetPlayerState (slot normalized; empty name means not committed yet).
+--- @return boolean
+function AM.HasSelectedSpecialization()
+    local slot = NormalizeSpecializationSlot(GetSpecialization())
+    if not slot then
+        return false
+    end
+    local _, name = GetSpecializationInfo(slot, false, false, nil)
+    local trimmed = name and strtrim(name) or ""
+    return HasSelectedSpecialization(slot, trimmed)
 end

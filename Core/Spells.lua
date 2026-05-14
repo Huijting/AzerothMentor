@@ -111,13 +111,45 @@ local function CollectSpellbookSpellIds()
     return set
 end
 
+-- Retribution specialization id (matches Core/Player.lua SPEC_ID_RETRIBUTION_PALADIN).
+local SPEC_ID_RETRIBUTION_PALADIN = 70
+
+--- Active specialization id for the local player, or nil (used to gate Ret-only spell rows).
+local function GetPlayerSpecializationId()
+    local n = tonumber(GetSpecialization())
+    if not n or n < 1 then
+        return nil
+    end
+    local ok, sid = pcall(function()
+        return select(1, GetSpecializationInfo(n, false, false, nil))
+    end)
+    if ok and type(sid) == "number" and sid > 0 then
+        return sid
+    end
+    return nil
+end
+
+--- Picks Retribution-specific copy when tutorialKeyRet is set and the player is Retribution.
+local function ResolveRowTutorialKey(row)
+    if not row then
+        return nil
+    end
+    if row.tutorialKeyRet and GetPlayerSpecializationId() == SPEC_ID_RETRIBUTION_PALADIN then
+        return row.tutorialKeyRet
+    end
+    return row.tutorialKey
+end
+
 --[[
   Paladin spell registry (retail spell IDs — verify after major patches).
 
   Each row:
-    spellID     — book / player spell id used with IsSpellKnownSafe
-    tutorialKey — AM.L beginner tip when this spell is highlighted
-    category    — builder | spender | heal | utility | crowdcontrol | defensive | aoe
+    spellID          — book / player spell id used with IsSpellKnownSafe
+    tutorialKey      — AM.L beginner tip when this spell is highlighted
+    tutorialKeyRet   — optional; when set and the player is Retribution, overrides tutorialKey (one spellID, two tones)
+    specIdRequired   — optional; when set (e.g. 70), row is ignored unless the player's specialization id matches
+                       (spells the player has not learned yet are still hidden via IsSpellKnownSafe)
+    category         — builder | spender | heal | utility | crowdcontrol | defensive | aoe
                   (future: filter tips, stage gates, “what to learn next” without combat rotation math)
     priority    — integer; higher = more important for beginners when picking a default spell card
                   (future: mentor pacing — which concept to explain first; rotation guidance will layer on top)
@@ -142,9 +174,31 @@ AM.Spells.PALADIN = {
     {
         spellID = 20271,
         tutorialKey = "SPELL_PALADIN_JUDGMENT",
+        tutorialKeyRet = "SPELL_RET_JUDGMENT",
         category = "builder",
-        priority = 95,
-    }, -- Judgment
+        priority = 96,
+    }, -- Judgment (shared; Ret uses SPELL_RET_JUDGMENT when specialized)
+    {
+        spellID = 184575,
+        tutorialKey = "SPELL_RET_BLADE_OF_JUSTICE",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "builder",
+        priority = 98,
+    }, -- Blade of Justice (Retribution)
+    {
+        spellID = 85256,
+        tutorialKey = "SPELL_RET_TEMPLARS_VERDICT",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "spender",
+        priority = 94,
+    }, -- Templar's Verdict (Retribution)
+    {
+        spellID = 255937,
+        tutorialKey = "SPELL_RET_WAKE_OF_ASHES",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "aoe",
+        priority = 88,
+    }, -- Wake of Ashes (Retribution; talent or baseline depending on patch—hidden until known)
     {
         spellID = 85673,
         tutorialKey = "SPELL_PALADIN_WORD_OF_GLORY",
@@ -155,7 +209,7 @@ AM.Spells.PALADIN = {
         spellID = 53600,
         tutorialKey = "SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS",
         category = "defensive",
-        priority = 88,
+        priority = 87,
     }, -- Shield of the Righteous
     {
         spellID = 26573,
@@ -285,7 +339,14 @@ end
 --------------------------------------------------------------------------------
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 local function BuildSpellDisplayInfo(self, row)
-    if not row or row.spellID == nil or not row.tutorialKey then
+    if not row or row.spellID == nil then
+        return nil
+    end
+    local tKey = ResolveRowTutorialKey(row)
+    if not tKey then
+        return nil
+    end
+    if row.specIdRequired and GetPlayerSpecializationId() ~= row.specIdRequired then
         return nil
     end
     if not self:IsSpellKnownSafe(row.spellID) then
@@ -298,7 +359,7 @@ local function BuildSpellDisplayInfo(self, row)
 
     return {
         spellID = spellID,
-        tutorialKey = row.tutorialKey,
+        tutorialKey = tKey,
         category = row.category or "utility",
         priority = priority,
         name = spellName,

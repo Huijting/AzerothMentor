@@ -1,7 +1,10 @@
 --[[
   Azeroth Mentor - Retribution Paladin spec module
   Spec-specific guidance and tutorial during the Spec Training mentor stage.
-  Register additional specs under AM.SpecModules using the same pattern.
+
+  Retribution is the first dedicated specialization mentoring layer (stage title, guidance, and
+  Ret-only spell copy in Core/Spells.lua). Future specs—Protection, Holy, and other classes—should
+  register under AM.SpecModules with the same pattern and optional spell-row gates (specIdRequired).
 ]]
 
 local AM = _G.AM

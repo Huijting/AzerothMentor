@@ -31,7 +31,7 @@ end
 --------------------------------------------------------------------------------
 local AzerothMentorFrame = CreateFrame("Frame", "AzerothMentorFrame", UIParent, "BackdropTemplate")
 
-AzerothMentorFrame:SetSize(360, 498)
+AzerothMentorFrame:SetSize(360, 590)
 AzerothMentorFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 AzerothMentorFrame:SetFrameStrata("MEDIUM")
 AzerothMentorFrame:SetClampedToScreen(true)
@@ -88,7 +88,7 @@ AzerothMentorFrame:SetScript("OnMouseWheel", function(self, delta)
 end)
 
 --------------------------------------------------------------------------------
--- Layout: title → player info → mentor stage → guidance → tutorial (top to bottom)
+-- Layout: title → player info → mentor stage → guidance → tutorial → (optional spec onboarding) → level-up banner → spell card (top to bottom)
 -- Content width leaves room for the close button and frame padding.
 --------------------------------------------------------------------------------
 local CONTENT_WIDTH = 318
@@ -159,6 +159,43 @@ tutorialText:SetWordWrap(true)
 tutorialText:SetSpacing(2)
 tutorialText:SetTextColor(0.55, 0.58, 0.62)
 tutorialText:EnableMouse(false)
+
+-- Level 10+ Paladin spec onboarding: "Choose Your Path" card (hidden once a specialization is active).
+-- Level 10 is a major beginner milestone in Retail; picking a spec changes mentor stage and later module hooks.
+local specOnboardFrame = CreateFrame("Frame", nil, AzerothMentorFrame, "BackdropTemplate")
+specOnboardFrame:SetSize(CONTENT_WIDTH, 108)
+specOnboardFrame:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
+specOnboardFrame:SetFrameLevel(AzerothMentorFrame:GetFrameLevel() + 2)
+specOnboardFrame:SetBackdrop({
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    tile = true,
+    tileSize = 8,
+    edgeSize = 1,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
+})
+specOnboardFrame:SetBackdropColor(0.05, 0.05, 0.08, 0.75)
+specOnboardFrame:SetBackdropBorderColor(0.35, 0.32, 0.22, 0.75)
+specOnboardFrame:Hide()
+
+local specOnboardTitle = specOnboardFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+specOnboardTitle:SetPoint("TOPLEFT", specOnboardFrame, "TOPLEFT", 8, -8)
+specOnboardTitle:SetPoint("TOPRIGHT", specOnboardFrame, "TOPRIGHT", -8, -8)
+specOnboardTitle:SetJustifyH("CENTER")
+specOnboardTitle:SetJustifyV("TOP")
+specOnboardTitle:SetTextColor(1, 0.82, 0.35)
+specOnboardTitle:EnableMouse(false)
+
+local specOnboardBody = specOnboardFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+specOnboardBody:SetPoint("TOPLEFT", specOnboardTitle, "BOTTOMLEFT", 0, -8)
+specOnboardBody:SetPoint("TOPRIGHT", specOnboardTitle, "BOTTOMRIGHT", 0, -8)
+specOnboardBody:SetWidth(CONTENT_WIDTH - 20)
+specOnboardBody:SetJustifyH("LEFT")
+specOnboardBody:SetJustifyV("TOP")
+specOnboardBody:SetWordWrap(true)
+specOnboardBody:SetSpacing(4)
+specOnboardBody:SetTextColor(0.78, 0.82, 0.9)
+specOnboardBody:EnableMouse(false)
 
 -- Level-up banner (PLAYER_LEVEL_UP): short in-frame echo only. Blizzard already shows the main level-up / unlock celebration;
 -- this line fades quickly so we do not compete with the default UI (see SetLevelUpMessage).
@@ -364,6 +401,31 @@ function AM:UpdateMainFrame(opts)
     guidanceText:SetText(s.guidance)
     tutorialText:SetText(s.tutorial or "")
 
+    -- Specialization onboarding: Paladin at level 10+ with no spec yet (PLAYER_SPECIALIZATION_CHANGED clears this).
+    local showSpecOnboarding = s.specOnboardingActive
+    specOnboardTitle:SetText(L["SPEC_ONBOARDING_TITLE"])
+    specOnboardBody:SetText(
+        L["SPEC_ONBOARD_PALADIN_RETRIBUTION"]
+            .. "\n\n"
+            .. L["SPEC_ONBOARD_PALADIN_PROTECTION"]
+            .. "\n\n"
+            .. L["SPEC_ONBOARD_PALADIN_HOLY"]
+    )
+    local specCardH = specOnboardTitle:GetStringHeight() + specOnboardBody:GetStringHeight() + 28
+    specOnboardFrame:SetHeight(math.max(100, math.min(200, specCardH)))
+    if showSpecOnboarding then
+        specOnboardFrame:Show()
+    else
+        specOnboardFrame:Hide()
+    end
+
+    levelUpText:ClearAllPoints()
+    if showSpecOnboarding then
+        levelUpText:SetPoint("TOP", specOnboardFrame, "BOTTOM", 0, -10)
+    else
+        levelUpText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
+    end
+
     if self._newAbilityBanner then
         self._newAbilityBanner = false
     end
@@ -386,6 +448,10 @@ function AM:UpdateMainFrame(opts)
         anchorFrame = levelUpText
         anchorPoint = "BOTTOM"
         anchorYOffset = -16
+    elseif showSpecOnboarding then
+        anchorFrame = specOnboardFrame
+        anchorPoint = "BOTTOM"
+        anchorYOffset = -10
     else
         anchorFrame = tutorialText
         anchorPoint = "BOTTOM"
