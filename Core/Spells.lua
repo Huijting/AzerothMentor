@@ -553,8 +553,46 @@ function AM:DetectNewSpells()
     return newIds
 end
 
+--- Retribution in combat: show a registry spell aligned with GetCombatRecommendation (BUILD vs SPEND).
+--- @return table|nil
+function AM:GetRetributionMentorCombatSpellCard()
+    local _, classFile = UnitClass("player")
+    if classFile ~= "PALADIN" then
+        return nil
+    end
+    if GetPlayerSpecializationId() ~= SPEC_ID_RETRIBUTION_PALADIN then
+        return nil
+    end
+    local sm = self.SpecModules and self.SpecModules.PALADIN and self.SpecModules.PALADIN.RETRIBUTION
+    if not sm or not sm.GetCombatRecommendation then
+        return nil
+    end
+    local combat = self.RetributionCombat and self.RetributionCombat.GetState and self.RetributionCombat:GetState()
+    if not combat then
+        return nil
+    end
+    local rec = sm.GetCombatRecommendation({ combat = combat })
+    if not rec or rec.phase == "OUT_OF_COMBAT" or not rec.suggestedSpellID then
+        return nil
+    end
+    local db = self.Spells and self.Spells.PALADIN
+    if not db then
+        return nil
+    end
+    for _, row in ipairs(db) do
+        if row and row.spellID == rec.suggestedSpellID then
+            local info = BuildSpellDisplayInfo(self, row)
+            if info then
+                info.isRetCombatMentorFocus = true
+                return info
+            end
+        end
+    end
+    return nil
+end
+
 --- Spell card: mentor focus on a tracked new spell, then an off-registry spellbook learn (UNKNOWN_SPELL_NOTICE),
---- then latest tracked learn, else highest-priority known.
+--- then latest tracked learn, then Retribution BUILD/SPEND mentor focus, else highest-priority known.
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetSpellCardDisplayInfo()
     local now = GetTime()
@@ -623,6 +661,13 @@ function AM:GetSpellCardDisplayInfo()
             end
         end
     end
+
+    -- Retribution: after “new spell” focus, spell card follows BUILD / SPEND (see GetCombatRecommendation).
+    local combatFocus = self:GetRetributionMentorCombatSpellCard()
+    if combatFocus then
+        return combatFocus
+    end
+
     return self:GetFirstKnownClassSpell()
 end
 

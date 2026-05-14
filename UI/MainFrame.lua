@@ -31,7 +31,7 @@ end
 --------------------------------------------------------------------------------
 local AzerothMentorFrame = CreateFrame("Frame", "AzerothMentorFrame", UIParent, "BackdropTemplate")
 
-AzerothMentorFrame:SetSize(360, 590)
+AzerothMentorFrame:SetSize(360, 620)
 AzerothMentorFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 AzerothMentorFrame:SetFrameStrata("MEDIUM")
 AzerothMentorFrame:SetClampedToScreen(true)
@@ -88,10 +88,12 @@ AzerothMentorFrame:SetScript("OnMouseWheel", function(self, delta)
 end)
 
 --------------------------------------------------------------------------------
--- Layout: title → player info → mentor stage → guidance → tutorial → (optional spec onboarding) → level-up banner → spell card (top to bottom)
+-- Layout: title → … → tutorial → (optional Ret Holy Power hint) → (optional spec onboarding) → level-up → spell card
 -- Content width leaves room for the close button and frame padding.
 --------------------------------------------------------------------------------
 local CONTENT_WIDTH = 318
+-- Retribution specialization id (matches Core/Player.lua).
+local SPEC_ID_RETRIBUTION_PALADIN = 70
 
 local titleText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 titleText:SetPoint("TOP", AzerothMentorFrame, "TOP", 0, -18)
@@ -159,6 +161,18 @@ tutorialText:SetWordWrap(true)
 tutorialText:SetSpacing(2)
 tutorialText:SetTextColor(0.55, 0.58, 0.62)
 tutorialText:EnableMouse(false)
+
+-- Retribution only: Holy Power count + beginner line (AM.RetributionCombat:GetState). Not rotation advice; threshold copy only.
+local holyPowerTrainingText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+holyPowerTrainingText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -10)
+holyPowerTrainingText:SetWidth(CONTENT_WIDTH)
+holyPowerTrainingText:SetJustifyH("CENTER")
+holyPowerTrainingText:SetJustifyV("TOP")
+holyPowerTrainingText:SetWordWrap(true)
+holyPowerTrainingText:SetSpacing(4)
+holyPowerTrainingText:SetTextColor(0.7, 0.78, 0.92)
+holyPowerTrainingText:EnableMouse(false)
+holyPowerTrainingText:Hide()
 
 -- Level 10+ Paladin spec onboarding: "Choose Your Path" card (hidden once a specialization is active).
 -- Level 10 is a major beginner milestone in Retail; picking a spec changes mentor stage and later module hooks.
@@ -426,9 +440,27 @@ function AM:UpdateMainFrame(opts)
         specOnboardFrame:Hide()
     end
 
+    -- Retribution Paladin: show Holy Power snapshot + build/spend hint (below tutorial, above spell card stack).
+    local showHolyPowerTraining = false
+    if s.classFile == "PALADIN" and s.specId == SPEC_ID_RETRIBUTION_PALADIN and AM.RetributionCombat and AM.RetributionCombat.GetState then
+        local hpState = AM.RetributionCombat:GetState()
+        local hpLine = string.format(L["RET_HOLY_POWER_LABEL"], hpState.holyPowerCurrent, hpState.holyPowerMax)
+        local recMod = AM.SpecModules.PALADIN and AM.SpecModules.PALADIN.RETRIBUTION
+        local rec = recMod and recMod.GetCombatRecommendation and recMod.GetCombatRecommendation({ combat = hpState })
+        local line2Key = rec and rec.displayLineKey
+        local line2 = (line2Key and L[line2Key]) or ""
+        holyPowerTrainingText:SetText(hpLine .. "\n" .. line2)
+        holyPowerTrainingText:Show()
+        showHolyPowerTraining = true
+    else
+        holyPowerTrainingText:Hide()
+    end
+
     levelUpText:ClearAllPoints()
     if showSpecOnboarding then
         levelUpText:SetPoint("TOP", specOnboardFrame, "BOTTOM", 0, -10)
+    elseif showHolyPowerTraining then
+        levelUpText:SetPoint("TOP", holyPowerTrainingText, "BOTTOM", 0, -10)
     else
         levelUpText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
     end
@@ -448,6 +480,7 @@ function AM:UpdateMainFrame(opts)
             (latestId and cardInfo.spellID == latestId and self:IsSpellKnownSafe(latestId))
             or (mentorExplainActive and self._mentorExplainSpellID == cardInfo.spellID)
             or cardInfo.isUnknownUntracked
+            or cardInfo.isRetCombatMentorFocus
         )
 
     local anchorFrame, anchorPoint, anchorYOffset
@@ -457,6 +490,10 @@ function AM:UpdateMainFrame(opts)
         anchorYOffset = -16
     elseif showSpecOnboarding then
         anchorFrame = specOnboardFrame
+        anchorPoint = "BOTTOM"
+        anchorYOffset = -10
+    elseif showHolyPowerTraining then
+        anchorFrame = holyPowerTrainingText
         anchorPoint = "BOTTOM"
         anchorYOffset = -10
     else

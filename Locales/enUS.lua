@@ -35,6 +35,13 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Retribution Paladins build Holy Power with basic attacks and spend it on stronger abilities."
     L.RET_TUTORIAL =
         "Try using Crusader Strike and Judgment first, then spend Holy Power on stronger attacks."
+    L.RET_HOLY_POWER_LABEL = "Holy Power: %d / %d"
+    L.RET_HOLY_POWER_BUILD = "Build Holy Power with Crusader Strike and Judgment."
+    L.RET_HOLY_POWER_SPEND = "You have enough Holy Power. Use a spender like Templar's Verdict."
+    L.RET_COMBAT_LINE_OOC =
+        "Out of combat: get familiar with Crusader Strike and Judgment so you are ready to build Holy Power in a fight."
+    L.RET_COMBAT_LINE_BUILD = "Use Crusader Strike or Judgment to build Holy Power."
+    L.RET_COMBAT_LINE_SPEND = "Use Templar's Verdict now for heavy damage."
     L.LABEL_CHARACTER = "Character"
     L.LABEL_CLASS = "Class"
     L.LABEL_SPEC = "Spec"
