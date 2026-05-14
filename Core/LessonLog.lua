@@ -25,7 +25,7 @@ local function FriendlyTypeLabel(technicalType)
 end
 
 local function LessonLogVerboseChat()
-    return AM.DEBUG_MILESTONES == true or AM.DEBUG_LESSON_LOG == true
+    return AM.DEBUG_LESSON_LOG == true
 end
 
 local function truncate(s, maxLen)

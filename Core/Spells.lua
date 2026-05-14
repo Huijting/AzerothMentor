@@ -58,14 +58,14 @@ local function FinishSpellCardDisplay(self, result, branch, opts)
             )
         )
     end
-    if AM.DEBUG_MILESTONES then
+    if AM.DEBUG_CARD_SELECTION then
         local ty = result and result.type or "nil"
         local nm = result and (result.title or result.name) or "no title"
         print("Azeroth Mentor card selected: " .. tostring(ty) .. " " .. tostring(nm))
     end
-    -- Mentor log: spell spotlight / passive paths only (milestone logs on Got it; skip combat noise).
+    -- Mentor log: spotlight paths only (no combat, no milestone here, no rotating first_known tips).
     if result and type(self.AddLessonLogEntry) == "function" and not (opts and opts.skipLessonLog) then
-        if branch ~= "combat_mentor" and branch ~= "level_milestone" then
+        if branch ~= "combat_mentor" and branch ~= "level_milestone" and branch ~= "first_known" then
             local title = result.title or result.name
             if not title or title == "" then
                 title = result.spellID and ("Spell " .. tostring(result.spellID)) or "?"

@@ -517,6 +517,18 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "debug cards" then
+        AM.DEBUG_CARD_SELECTION = not AM.DEBUG_CARD_SELECTION
+        print(string.format("[Azeroth Mentor] DEBUG_CARD_SELECTION = %s", tostring(AM.DEBUG_CARD_SELECTION)))
+        return
+    end
+
+    if lower == "debug lessonlog" then
+        AM.DEBUG_LESSON_LOG = not AM.DEBUG_LESSON_LOG
+        print(string.format("[Azeroth Mentor] DEBUG_LESSON_LOG = %s", tostring(AM.DEBUG_LESSON_LOG)))
+        return
+    end
+
     if lower == "log clear" then
         if type(AM.ClearLessonLog) == "function" then
             AM:ClearLessonLog()

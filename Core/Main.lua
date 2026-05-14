@@ -10,6 +10,10 @@ local AM = _G.AM
 -- Used by Core/Events.lua when filtering ADDON_LOADED (must match the addon folder / TOC name).
 AM.name = "AzerothMentor"
 
+-- Optional dev toggles (see `/am debug milestones`, `/am debug cards`, `/am debug lessonlog`).
+AM.DEBUG_CARD_SELECTION = AM.DEBUG_CARD_SELECTION or false
+AM.DEBUG_LESSON_LOG = AM.DEBUG_LESSON_LOG or false
+
 --------------------------------------------------------------------------------
 -- Defaults (uiScale is in-memory until a future save pipeline persists AM.db)
 --------------------------------------------------------------------------------
