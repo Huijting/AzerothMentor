@@ -478,7 +478,7 @@ function AM:ToggleMainFrame()
 end
 
 --------------------------------------------------------------------------------
--- Slash command: /am toggles visibility; /am scale reset restores default scale; /am retstate prints Retribution combat snapshot
+-- Slash command: /am toggles visibility; dev/testing subcommands below.
 --------------------------------------------------------------------------------
 SLASH_AZEROTHMENTOR1 = "/am"
 
@@ -497,6 +497,69 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         if AM.RetributionCombat and AM.RetributionCombat.PrintStateToChat then
             AM.RetributionCombat:PrintStateToChat()
         end
+        return
+    end
+
+    if lower == "reset milestones" then
+        if type(AM.ResetSeenMilestones) == "function" then
+            AM:ResetSeenMilestones()
+        end
+        if type(AM.UpdateMainFrame) == "function" then
+            AM:UpdateMainFrame({ skipDetect = true })
+        end
+        print("Azeroth Mentor: seen milestones reset.")
+        return
+    end
+
+    if lower == "debug milestones" then
+        AM.DEBUG_MILESTONES = not AM.DEBUG_MILESTONES
+        print(string.format("[Azeroth Mentor] DEBUG_MILESTONES = %s", tostring(AM.DEBUG_MILESTONES)))
+        return
+    end
+
+    if lower == "status" then
+        local level = UnitLevel("player") or 0
+        local _, classFile = UnitClass("player")
+        classFile = classFile or "?"
+        local className = classFile
+        local specLine = "?"
+        local specId = nil
+        if type(AM.GetPlayerState) == "function" then
+            local ok, st = pcall(AM.GetPlayerState, AM)
+            if ok and type(st) == "table" then
+                className = st.className or className
+                specLine = st.specLine or specLine
+                specId = st.specId
+            end
+        end
+        local hpStr = "n/a"
+        if AM.RetributionCombat and AM.RetributionCombat.GetState then
+            local ok, hp = pcall(AM.RetributionCombat.GetState, AM.RetributionCombat)
+            if ok and type(hp) == "table" then
+                hpStr = string.format("%d / %d", tonumber(hp.holyPowerCurrent) or 0, tonumber(hp.holyPowerMax) or 0)
+            end
+        end
+        local mileStr = "n/a"
+        if type(AM.GetCurrentLevelMilestone) == "function" then
+            local ok, m = pcall(AM.GetCurrentLevelMilestone, AM)
+            if ok and type(m) == "table" and m.milestoneKey then
+                mileStr = string.format("yes (%s)", tostring(m.milestoneKey))
+            elseif ok then
+                mileStr = "no"
+            end
+        end
+        local cardStr = "n/a"
+        if type(AM.GetSpellCardDisplayInfo) == "function" then
+            local ok, c = pcall(AM.GetSpellCardDisplayInfo, AM)
+            if ok and type(c) == "table" then
+                local ty = c.type or "spell"
+                local title = c.title or c.name or c.tutorialKey or "?"
+                cardStr = string.format("%s | %s", tostring(ty), tostring(title))
+            elseif ok then
+                cardStr = "(nil)"
+            end
+        end
+        print(string.format("[Azeroth Mentor] status: level=%d class=%s (%s) spec=%s (%s) holyPower=%s milestone=%s card=%s", level, tostring(className), classFile, tostring(specLine), tostring(specId or "?"), hpStr, mileStr, cardStr))
         return
     end
 
