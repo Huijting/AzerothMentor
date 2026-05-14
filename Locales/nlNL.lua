@@ -60,6 +60,8 @@ if GetLocale() == "nlNL" then
         "Als Retribution gebruik je Judgment vaak op middelbare afstand. Het raakt je doelwit en maakt je volgende Holy Power-uitgaven sterker."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict gebruikt Holy Power voor een harde single-target aanval. Bouw eerst Holy Power op en gebruik het als je één groot slag wilt uitdelen."
+    L.SPELL_RET_CONSECRATED_BLADE =
+        "Consecrated Blade is een passief effect. Dat betekent dat het je Paladin automatisch verbetert; het is geen nieuwe knop die je hoeft in te drukken.\n\nBlijf je normale Retribution-ritme gebruiken: bouw Holy Power op en geef het daarna uit."
     L.SPELL_RET_BLADE_OF_JUSTICE =
         "Blade of Justice is een belangrijke builder: het geeft Holy Power op afstand zodat je het kunt uitgeven op afmakers zoals Templar's Verdict."
     L.SPELL_RET_WAKE_OF_ASHES =

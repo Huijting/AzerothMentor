@@ -223,6 +223,13 @@ AM.Spells.PALADIN = {
         priority = 98,
     }, -- Blade of Justice (Retribution)
     {
+        spellID = 462970,
+        tutorialKey = "SPELL_RET_CONSECRATED_BLADE",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "utility",
+        priority = 52,
+    }, -- Consecrated Blade (Retribution passive; not a new action button — verify spell ID after major patches)
+    {
         spellID = 85256,
         tutorialKey = "SPELL_RET_TEMPLARS_VERDICT",
         specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
@@ -506,9 +513,16 @@ function AM:DetectUntrackedSpellbookNewSpells()
     end
 
     if pickedUntracked then
-        self._unknownUntrackedSpellID = pickedUntracked
-        self._unknownUntrackedUntil = now + MENTOR_SPELL_FOCUS_SECONDS
-        DebugSpellDetect("Untracked spellbook learn: " .. tostring(pickedUntracked))
+        -- Do not queue a generic unknown card while a current-level milestone is available (better level-up UX).
+        if type(self.GetCurrentLevelMilestone) == "function" and self:GetCurrentLevelMilestone() then
+            DebugSpellDetect(
+                "Untracked spellbook learn skipped (current level milestone active): " .. tostring(pickedUntracked)
+            )
+        else
+            self._unknownUntrackedSpellID = pickedUntracked
+            self._unknownUntrackedUntil = now + MENTOR_SPELL_FOCUS_SECONDS
+            DebugSpellDetect("Untracked spellbook learn: " .. tostring(pickedUntracked))
+        end
     end
 end
 
@@ -660,7 +674,7 @@ end
 
 --- Spell card priority:
 --- In combat: Retribution combat mentor when available.
---- Out of combat: level milestone → mentor explain → unknown untracked → latest learned spotlight → default known.
+--- Out of combat: level milestone → mentor explain → unknown untracked (also suppressed at detect-time if a milestone is active) → latest learned spotlight → default known.
 --- Spec onboarding stays in MainFrame (separate panel).
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetSpellCardDisplayInfo()

@@ -61,6 +61,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "As Retribution, use Judgment often from medium range. It hurts your target and makes your next Holy Power spenders hit harder."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict spends Holy Power for a strong single-target attack. Build Holy Power with builders first, then use it when you want a big hit."
+    L.SPELL_RET_CONSECRATED_BLADE =
+        "Consecrated Blade is a passive effect. That means it improves your Paladin automatically; it is not a new button you need to press.\n\nKeep using your normal Retribution rhythm: build Holy Power, then spend it."
     L.SPELL_RET_BLADE_OF_JUSTICE =
         "Blade of Justice is a core builder: it generates Holy Power from range so you can spend it on finishers like Templar's Verdict."
     L.SPELL_RET_WAKE_OF_ASHES =
