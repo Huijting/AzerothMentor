@@ -12,7 +12,7 @@ AM.Spells = AM.Spells or {}
 AM.knownSpellSnapshot = AM.knownSpellSnapshot or {}
 -- After first successful DetectNewSpells seeding pass, diffs run against this snapshot.
 AM._knownSpellSnapshotReady = AM._knownSpellSnapshotReady or false
--- AM.latestLearnedSpellID — set by DetectNewSpells when new tracked spells appear.
+-- AM.latestLearnedSpellID — set on new tracked learns; cleared when mentor spotlight ends (see GetSpellCardDisplayInfo).
 -- AM.pendingNewSpellIds — array of new spellIDs for the current UI refresh (consumed in UpdateMainFrame).
 -- AM._mentorExplainSpellID / AM._mentorExplainUntil — keep the spell card on the new spell while the player reads the mentor copy (complements Blizzard’s unlock toast; does not replace it).
 -- AM.spellbookIdSnapshot / AM._spellbookSpellSnapshotReady — full player spellbook spellIDs for detecting learns not yet in AM.Spells.PALADIN.
@@ -26,6 +26,38 @@ local function DebugSpellDetect(msg)
     if SPELL_DETECT_DEBUG then
         print("|cffaaaaff[Azeroth Mentor]|r " .. tostring(msg))
     end
+end
+
+-- Set true temporarily to trace spell card branch + GetCombatRecommendation vs final pick (chat can be noisy).
+local DEBUG_COMBAT_SPELL_CARD = false
+
+--- Logs GetCombatRecommendation snapshot vs branch + spell card chosen.
+--- @param branch string which resolver path returned (mentor_explain, unknown_untracked, latest_learned, combat_mentor, first_known)
+local function FinishSpellCardDisplay(self, result, branch)
+    branch = branch or "default"
+    if DEBUG_COMBAT_SPELL_CARD then
+        local phase = "n/a"
+        local suggested = "nil"
+        local sm = self.SpecModules and self.SpecModules.PALADIN and self.SpecModules.PALADIN.RETRIBUTION
+        if sm and sm.GetCombatRecommendation and self.RetributionCombat and self.RetributionCombat.GetState then
+            local rec = sm.GetCombatRecommendation({ combat = self.RetributionCombat:GetState() })
+            if rec then
+                phase = tostring(rec.phase)
+                suggested = tostring(rec.suggestedSpellID)
+            end
+        end
+        local final = result and result.spellID or "nil"
+        print(
+            string.format(
+                "[Azeroth Mentor][SpellCard] branch=%s phase=%s suggestedSpellID=%s finalSpellID=%s",
+                tostring(branch),
+                phase,
+                suggested,
+                tostring(final)
+            )
+        )
+    end
+    return result
 end
 
 local function SortedSpellIdList(snap)
@@ -477,7 +509,7 @@ end
 
 --- Compares the previous snapshot to the current one, updates the saved snapshot, sets latestLearnedSpellID
 --- when at least one new spell appears (first new in PALADIN registry order — highest beginner priority first
---- in the table — if several), and stages UI data.
+--- in the table — if several), and stages UI data. latestLearnedSpellID is cleared when mentor spotlight ends.
 --- First run seeds the snapshot without reporting anything as new (avoids login spam).
 --- @return number[] newSpellIDs in registry order
 function AM:DetectNewSpells()
@@ -553,7 +585,8 @@ function AM:DetectNewSpells()
     return newIds
 end
 
---- Retribution in combat: show a registry spell aligned with GetCombatRecommendation (BUILD vs SPEND).
+--- Retribution in combat: spell card follows BUILD (walk builder list) or SPEND (Templar's Verdict when known).
+--- Does not replace mentor_explain / unknown / latest spotlight (handled in GetSpellCardDisplayInfo).
 --- @return table|nil
 function AM:GetRetributionMentorCombatSpellCard()
     local _, classFile = UnitClass("player")
@@ -572,22 +605,51 @@ function AM:GetRetributionMentorCombatSpellCard()
         return nil
     end
     local rec = sm.GetCombatRecommendation({ combat = combat })
-    if not rec or rec.phase == "OUT_OF_COMBAT" or not rec.suggestedSpellID then
+    if not rec or rec.phase == "OUT_OF_COMBAT" then
         return nil
     end
+
     local db = self.Spells and self.Spells.PALADIN
     if not db then
         return nil
     end
-    for _, row in ipairs(db) do
-        if row and row.spellID == rec.suggestedSpellID then
-            local info = BuildSpellDisplayInfo(self, row)
-            if info then
-                info.isRetCombatMentorFocus = true
-                return info
+
+    if rec.phase == "BUILD" then
+        -- Never gate BUILD on rec.suggestedSpellID alone: display can be BUILD while suggested was nil,
+        -- which previously skipped this path and let GetFirstKnownClassSpell pick a spender (e.g. TV).
+        local order = (sm.GetBuildMentorSpellOrder and sm.GetBuildMentorSpellOrder()) or { 184575, 35395, 20271 }
+        for _, sid in ipairs(order) do
+            for _, row in ipairs(db) do
+                if row and row.spellID == sid then
+                    local info = BuildSpellDisplayInfo(self, row)
+                    if info then
+                        info.isRetCombatMentorFocus = true
+                        return info
+                    end
+                    break
+                end
             end
         end
+        return nil
     end
+
+    if rec.phase == "SPEND" then
+        if not rec.suggestedSpellID then
+            return nil
+        end
+        for _, row in ipairs(db) do
+            if row and row.spellID == rec.suggestedSpellID then
+                local info = BuildSpellDisplayInfo(self, row)
+                if info then
+                    info.isRetCombatMentorFocus = true
+                    return info
+                end
+                break
+            end
+        end
+        return nil
+    end
+
     return nil
 end
 
@@ -599,6 +661,8 @@ function AM:GetSpellCardDisplayInfo()
     if self._mentorExplainUntil and now >= self._mentorExplainUntil then
         self._mentorExplainUntil = nil
         self._mentorExplainSpellID = nil
+        -- End "new spell" spotlight; otherwise latestLearnedSpellID would win forever and block combat mentor card.
+        self.latestLearnedSpellID = nil
     end
 
     if self._unknownUntrackedUntil and now >= self._unknownUntrackedUntil then
@@ -611,6 +675,7 @@ function AM:GetSpellCardDisplayInfo()
         if not self:IsSpellKnownSafe(explainId) then
             self._mentorExplainUntil = nil
             self._mentorExplainSpellID = nil
+            self.latestLearnedSpellID = nil
         else
             local db = self.Spells and self.Spells.PALADIN
             if db then
@@ -618,7 +683,7 @@ function AM:GetSpellCardDisplayInfo()
                     if row and row.spellID == explainId then
                         local info = BuildSpellDisplayInfo(self, row)
                         if info then
-                            return info
+                            return FinishSpellCardDisplay(self, info, "mentor_explain")
                         end
                         break
                     end
@@ -635,7 +700,7 @@ function AM:GetSpellCardDisplayInfo()
             self._unknownUntrackedUntil = nil
         else
             local nm, ic = self:GetSpellDisplayInfo(unkId)
-            return {
+            return FinishSpellCardDisplay(self, {
                 spellID = unkId,
                 tutorialKey = "UNKNOWN_SPELL_NOTICE",
                 category = "unknown",
@@ -643,10 +708,11 @@ function AM:GetSpellCardDisplayInfo()
                 name = nm,
                 icon = ic,
                 isUnknownUntracked = true,
-            }
+            }, "unknown_untracked")
         end
     end
 
+    -- While mentor spotlight is active, explain branch above returns first. After it ends, latestLearnedSpellID is nil.
     local latest = self.latestLearnedSpellID
     if latest and self:IsSpellKnownSafe(latest) then
         local db = self.Spells and self.Spells.PALADIN
@@ -655,20 +721,20 @@ function AM:GetSpellCardDisplayInfo()
                 if row and row.spellID == latest then
                     local info = BuildSpellDisplayInfo(self, row)
                     if info then
-                        return info
+                        return FinishSpellCardDisplay(self, info, "latest_learned")
                     end
                 end
             end
         end
     end
 
-    -- Retribution: after “new spell” focus, spell card follows BUILD / SPEND (see GetCombatRecommendation).
+    -- Retribution: replaces default fallback only (not explain / unknown / latest spotlight).
     local combatFocus = self:GetRetributionMentorCombatSpellCard()
     if combatFocus then
-        return combatFocus
+        return FinishSpellCardDisplay(self, combatFocus, "combat_mentor")
     end
 
-    return self:GetFirstKnownClassSpell()
+    return FinishSpellCardDisplay(self, self:GetFirstKnownClassSpell(), "first_known")
 end
 
 --------------------------------------------------------------------------------

@@ -22,6 +22,9 @@ local PHASE_SPEND = "SPEND"
 
 -- Spell IDs aligned with Core/Spells.lua + RetributionCombat.lua (retail).
 local SPELL_BLADE_OF_JUSTICE = 184575
+local SPELL_CRUSADER_STRIKE = 35395
+local SPELL_JUDGMENT = 20271
+local SPELL_TEMPLARS_VERDICT = 85256
 
 --- @class PaladinRetributionModule
 local module = {}
@@ -38,7 +41,12 @@ function module.GetTutorial(playerState)
     return L["RET_TUTORIAL"]
 end
 
---- Beginner combat recommendation from Holy Power + combat flag only.
+--- Spell ID order for the BUILD mentor spell card (must match GetCombatRecommendation builder priority).
+--- @return number[]
+function module.GetBuildMentorSpellOrder()
+    return { SPELL_BLADE_OF_JUSTICE, SPELL_CRUSADER_STRIKE, SPELL_JUDGMENT }
+end
+
 --- @param state table|nil optional `{ combat = table }` from AM.RetributionCombat:GetState(); if omitted, reads live state.
 --- @return table { phase = string, displayLineKey = string, suggestedSpellID = number|nil }
 function module.GetCombatRecommendation(state)
@@ -61,13 +69,14 @@ function module.GetCombatRecommendation(state)
     end
 
     if hp < 3 then
+        -- BUILD mentor card order: Blade of Justice, Crusader Strike, Judgment (all via IsSpellKnownSafe so it matches the card resolver).
         local sid
-        if combat.crusaderStrikeKnown then
-            sid = 35395
-        elseif combat.judgmentKnown then
-            sid = 20271
-        elseif AM:IsSpellKnownSafe(SPELL_BLADE_OF_JUSTICE) then
+        if AM:IsSpellKnownSafe(SPELL_BLADE_OF_JUSTICE) then
             sid = SPELL_BLADE_OF_JUSTICE
+        elseif AM:IsSpellKnownSafe(SPELL_CRUSADER_STRIKE) then
+            sid = SPELL_CRUSADER_STRIKE
+        elseif AM:IsSpellKnownSafe(SPELL_JUDGMENT) then
+            sid = SPELL_JUDGMENT
         end
         return {
             phase = PHASE_BUILD,
@@ -77,8 +86,8 @@ function module.GetCombatRecommendation(state)
     end
 
     local spendId
-    if combat.templarsVerdictKnown then
-        spendId = 85256
+    if AM:IsSpellKnownSafe(SPELL_TEMPLARS_VERDICT) then
+        spendId = SPELL_TEMPLARS_VERDICT
     end
     return {
         phase = PHASE_SPEND,
