@@ -15,9 +15,8 @@ AM.name = "AzerothMentor"
 --------------------------------------------------------------------------------
 AM.db = AM.db or {}
 AM.db.uiScale = AM.db.uiScale or 1.0
--- Spell awareness: once a "new ability" line is shown for a spellID, do not repeat (future: persist with saved variables).
-AM.db.spellTipsSeen = AM.db.spellTipsSeen or {}
-
+-- Custom minimap button orbit angle (degrees); set by UI/MinimapButton.lua when dragged.
+AM.db.minimapButtonAngle = AM.db.minimapButtonAngle or 205
 --------------------------------------------------------------------------------
 -- Localization table (filled by Locales/*.lua; missing keys fall back to the key string)
 --------------------------------------------------------------------------------

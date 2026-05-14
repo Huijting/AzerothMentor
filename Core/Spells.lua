@@ -8,8 +8,39 @@ local AM = _G.AM
 
 AM.Spells = AM.Spells or {}
 
+-- In-memory snapshot of tracked spellIDs the player knew after the last diff (see DetectNewSpells).
+AM.knownSpellSnapshot = AM.knownSpellSnapshot or {}
+-- After first successful DetectNewSpells seeding pass, diffs run against this snapshot.
+AM._knownSpellSnapshotReady = AM._knownSpellSnapshotReady or false
+-- AM.latestLearnedSpellID — set by DetectNewSpells when new tracked spells appear.
+-- AM.pendingNewSpellIds — array of new spellIDs for the current UI refresh (consumed in UpdateMainFrame).
+-- One-shot: UI shows NEW_ABILITY_LEARNED label for the refresh right after a detection.
+AM._newAbilityBanner = AM._newAbilityBanner or false
+
 -- Crusader Strike — prioritized in AM:GetFirstKnownClassSpell when actually known.
 local CRUSADER_STRIKE_SPELL_ID = 35395
+
+-- Temporary: set false to silence snapshot / detection chat spam.
+local SPELL_DETECT_DEBUG = true
+
+local function DebugSpellDetect(msg)
+    if SPELL_DETECT_DEBUG then
+        print("|cffaaaaff[Azeroth Mentor]|r " .. tostring(msg))
+    end
+end
+
+local function SortedSpellIdList(snap)
+    local ids = {}
+    for sid in pairs(snap or {}) do
+        ids[#ids + 1] = sid
+    end
+    table.sort(ids)
+    local parts = {}
+    for i = 1, #ids do
+        parts[i] = tostring(ids[i])
+    end
+    return table.concat(parts, ", ")
+end
 
 --[[
   Paladin spell registry (retail spell IDs — verify after major patches).
@@ -19,7 +50,8 @@ local CRUSADER_STRIKE_SPELL_ID = 35395
 ]]
 AM.Spells.PALADIN = {
     { spellID = 35395, tutorialKey = "SPELL_PALADIN_CRUSADER_STRIKE", category = "builder" }, -- Crusader Strike
-    { spellID = 214222, tutorialKey = "SPELL_PALADIN_JUDGMENT", category = "builder" }, -- Judgment
+    -- Player-learned Judgment uses the base spell id (e.g. level 3); 214222 is not the book entry on retail.
+    { spellID = 20271, tutorialKey = "SPELL_PALADIN_JUDGMENT", category = "builder" }, -- Judgment
     { spellID = 19750, tutorialKey = "SPELL_PALADIN_FLASH_OF_LIGHT", category = "heal" }, -- Flash of Light
 }
 
@@ -172,6 +204,110 @@ function AM:GetKnownSpells()
 end
 
 --------------------------------------------------------------------------------
+-- Known spell snapshot (diff-based “newly learned” detection)
+--------------------------------------------------------------------------------
+--- @return table<number, boolean> spellID -> true for every tracked spell the player currently knows.
+function AM:BuildKnownSpellSnapshot()
+    local snap = {}
+    for _, info in ipairs(self:GetKnownSpells()) do
+        snap[info.spellID] = true
+    end
+    DebugSpellDetect("BuildKnownSpellSnapshot → {" .. SortedSpellIdList(snap) .. "}")
+    return snap
+end
+
+--- Compares the previous snapshot to the current one, updates the saved snapshot, sets latestLearnedSpellID
+--- when at least one new spell appears (first new in PALADIN registry order if several), and stages UI data.
+--- First run seeds the snapshot without reporting anything as new (avoids login spam).
+--- @return number[] newSpellIDs in registry order
+function AM:DetectNewSpells()
+    self.knownSpellSnapshot = self.knownSpellSnapshot or {}
+
+    -- Build the current spellbook view first; keep a shallow copy of the previous snapshot until diff completes.
+    local newSnap = self:BuildKnownSpellSnapshot()
+
+    if not self._knownSpellSnapshotReady then
+        wipe(self.knownSpellSnapshot)
+        for sid in pairs(newSnap) do
+            self.knownSpellSnapshot[sid] = true
+        end
+        self._knownSpellSnapshotReady = true
+        self.pendingNewSpellIds = nil
+        DebugSpellDetect("DetectNewSpells: initial snapshot seeded (no new spells reported).")
+        return {}
+    end
+
+    local oldSnap = {}
+    for sid, v in pairs(self.knownSpellSnapshot) do
+        oldSnap[sid] = v
+    end
+    DebugSpellDetect("DetectNewSpells: comparing old={" .. SortedSpellIdList(oldSnap) .. "} vs new={" .. SortedSpellIdList(newSnap) .. "}")
+
+    local newIds = {}
+
+    local db = self.Spells and self.Spells.PALADIN
+    if db then
+        for _, row in ipairs(db) do
+            if row and row.spellID and newSnap[row.spellID] and not oldSnap[row.spellID] then
+                newIds[#newIds + 1] = row.spellID
+            end
+        end
+    end
+
+    -- Only after diff: replace stored snapshot with the newest spellbook state.
+    wipe(self.knownSpellSnapshot)
+    for sid in pairs(newSnap) do
+        self.knownSpellSnapshot[sid] = true
+    end
+
+    if #newIds >= 1 then
+        self.latestLearnedSpellID = newIds[1]
+        self._newAbilityBanner = true
+        local pending = {}
+        for i, sid in ipairs(newIds) do
+            pending[i] = sid
+        end
+        self.pendingNewSpellIds = pending
+        local idParts = {}
+        for i = 1, #newIds do
+            idParts[i] = tostring(newIds[i])
+        end
+        DebugSpellDetect(
+            "DetectNewSpells: NEW tracked spell ID(s): "
+                .. table.concat(idParts, ", ")
+                .. " (first="
+                .. tostring(newIds[1])
+                .. ")"
+        )
+    else
+        self.pendingNewSpellIds = nil
+        DebugSpellDetect("DetectNewSpells: no new tracked spells this pass.")
+    end
+
+    return newIds
+end
+
+--- Spell card: prefer the latest detected new spell while it is still known; otherwise Crusader-first fallback.
+--- @return table|nil { spellID, tutorialKey, category, name, icon }
+function AM:GetSpellCardDisplayInfo()
+    local latest = self.latestLearnedSpellID
+    if latest and self:IsSpellKnownSafe(latest) then
+        local db = self.Spells and self.Spells.PALADIN
+        if db then
+            for _, row in ipairs(db) do
+                if row and row.spellID == latest then
+                    local info = BuildSpellDisplayInfo(self, row)
+                    if info then
+                        return info
+                    end
+                end
+            end
+        end
+    end
+    return self:GetFirstKnownClassSpell()
+end
+
+--------------------------------------------------------------------------------
 -- First known class spell (for spell card UI)
 --------------------------------------------------------------------------------
 --- Returns one display-ready Paladin registry spell: Crusader Strike if known, else the first known row in DB order.
@@ -204,43 +340,4 @@ function AM:GetFirstKnownClassSpell()
     end
 
     return nil
-end
-
---------------------------------------------------------------------------------
--- Newest learned spell (one-shot announcement per spellID)
---------------------------------------------------------------------------------
---- Detects a tracked spell that just became known and has not been announced yet.
---- Uses a one-time snapshot init on first run to avoid spamming every known spell at login.
---- @return table|nil info { spellID, tutorialKey, category, name, icon }
-function AM:GetNewestKnownSpell()
-    self.db.spellTipsSeen = self.db.spellTipsSeen or {}
-
-    local knownList = self:GetKnownSpells()
-    local cur = {}
-    for _, info in ipairs(knownList) do
-        cur[info.spellID] = true
-    end
-
-    if not self._spellAwareInit then
-        self._spellPrevKnown = cur
-        self._spellAwareInit = true
-        return nil
-    end
-
-    local prev = self._spellPrevKnown or {}
-    local candidate
-
-    -- Later rows in PALADIN table are treated as "newer" for tie-breaking.
-    for _, info in ipairs(knownList) do
-        if
-            cur[info.spellID]
-            and not prev[info.spellID]
-            and not self.db.spellTipsSeen[info.spellID]
-        then
-            candidate = info
-        end
-    end
-
-    self._spellPrevKnown = cur
-    return candidate
 end

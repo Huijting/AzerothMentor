@@ -30,6 +30,7 @@ if GetLocale() == "nlNL" then
     L.LABEL_MENTOR_STAGE = "Mentor fase"
     L.SPEC_NOT_SELECTED = "Nog niet gekozen"
     L.SPELL_NEW_ABILITY = "Nieuwe vaardigheid geleerd:"
+    L.NEW_ABILITY_LEARNED = "Nieuwe vaardigheid geleerd"
     L.SPELL_PALADIN_CRUSADER_STRIKE =
         "Crusader Strike is een melee-aanval die Holy Power opbouwt. Gebruik het als je dicht bij je doelwit bent."
     L.SPELL_PALADIN_JUDGMENT =
@@ -39,6 +40,8 @@ if GetLocale() == "nlNL" then
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."
+    L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
+    L.MINIMAP_TOOLTIP_LEFT_CLICK = "Linksklik om de mentor te openen of sluiten."
 
     print("|cff00ff00" .. L.LOADED .. "|r")
 end

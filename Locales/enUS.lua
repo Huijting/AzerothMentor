@@ -32,6 +32,7 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.LABEL_MENTOR_STAGE = "Mentor Stage"
     L.SPEC_NOT_SELECTED = "Not selected yet"
     L.SPELL_NEW_ABILITY = "New Ability Learned:"
+    L.NEW_ABILITY_LEARNED = "New Ability Learned"
     L.SPELL_PALADIN_CRUSADER_STRIKE =
         "Crusader Strike is a melee attack that builds Holy Power. Use it when you are close to your target."
     L.SPELL_PALADIN_JUDGMENT =
@@ -41,6 +42,8 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."
+    L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
+    L.MINIMAP_TOOLTIP_LEFT_CLICK = "Left-click to open or close the mentor."
 
     print("|cff00ff00" .. L.LOADED .. "|r")
 end

@@ -19,15 +19,22 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
             return
         end
     elseif event == "SPELLS_CHANGED" then
+        -- Spellbook updates after level-ups usually land here; diff before refreshing the UI.
         local _, classFile = UnitClass("player")
         if classFile ~= "PALADIN" then
             return
         end
+        AM:DetectNewSpells()
+        AM:UpdateMainFrame({ skipDetect = true })
+        return
     elseif event == "PLAYER_LEVEL_UP" then
         local newLevel = arg1
         if type(newLevel) == "number" then
             AM:SetLevelUpMessage(newLevel)
         end
+        -- Do not run DetectNewSpells here: the client often has not granted new spells yet.
+        AM:UpdateMainFrame({ skipDetect = true })
+        return
     end
 
     AM:UpdateMainFrame()

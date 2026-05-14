@@ -172,7 +172,17 @@ levelUpText:SetTextColor(0.45, 0.95, 0.55)
 levelUpText:SetText("")
 levelUpText:EnableMouse(false)
 
--- Spell card: first known Paladin registry ability (Crusader Strike preferred when known).
+-- Headline when DetectNewSpells reports a new tracked ability (one refresh; see Core/Spells.lua).
+local spellCardLabel = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+spellCardLabel:SetWidth(CONTENT_WIDTH)
+spellCardLabel:SetJustifyH("CENTER")
+spellCardLabel:SetJustifyV("TOP")
+spellCardLabel:SetTextColor(0.45, 0.95, 0.55)
+spellCardLabel:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+spellCardLabel:Hide()
+spellCardLabel:EnableMouse(false)
+
+-- Spell card: latest learned tracked spell when available, else first known (Crusader Strike preferred).
 -- Icon uses WoW spell art; hover shows the real GameTooltip for the spell ID.
 local spellCard = CreateFrame("Frame", nil, AzerothMentorFrame)
 spellCard:SetSize(CONTENT_WIDTH, 54)
@@ -250,6 +260,21 @@ function AM:SetLevelUpMessage(level)
 end
 
 --------------------------------------------------------------------------------
+-- Main frame visibility (slash + minimap button)
+--------------------------------------------------------------------------------
+function AM:ToggleMainFrame()
+    local f = self.mainFrame or _G.AzerothMentorFrame
+    if not f then
+        return
+    end
+    if f:IsShown() then
+        f:Hide()
+    else
+        f:Show()
+    end
+end
+
+--------------------------------------------------------------------------------
 -- Slash command: /am toggles visibility; /am scale reset restores default scale
 --------------------------------------------------------------------------------
 SLASH_AZEROTHMENTOR1 = "/am"
@@ -265,17 +290,19 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
-    if AzerothMentorFrame:IsShown() then
-        AzerothMentorFrame:Hide()
-    else
-        AzerothMentorFrame:Show()
-    end
+    AM:ToggleMainFrame()
 end
 
 --------------------------------------------------------------------------------
 -- Refresh all text from AM:GetPlayerState()
 --------------------------------------------------------------------------------
-function AM:UpdateMainFrame()
+--- @param opts table|nil optional `{ skipDetect = true }` to refresh UI without re-running spell diff (e.g. after SPELLS_CHANGED already called DetectNewSpells).
+function AM:UpdateMainFrame(opts)
+    opts = opts or {}
+    if not opts.skipDetect then
+        self:DetectNewSpells()
+    end
+
     local s = self:GetPlayerState()
 
     playerInfoText:SetText(string.format(
@@ -294,7 +321,21 @@ function AM:UpdateMainFrame()
     guidanceText:SetText(s.guidance)
     tutorialText:SetText(s.tutorial or "")
 
-    local cardInfo = self:GetFirstKnownClassSpell()
+    local showBanner = self._newAbilityBanner
+    if showBanner then
+        spellCardLabel:SetText(L["NEW_ABILITY_LEARNED"])
+        spellCardLabel:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+        spellCardLabel:Show()
+        spellCard:ClearAllPoints()
+        spellCard:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -6)
+        self._newAbilityBanner = false
+    else
+        spellCardLabel:Hide()
+        spellCard:ClearAllPoints()
+        spellCard:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
+    end
+
+    local cardInfo = self:GetSpellCardDisplayInfo()
     if cardInfo then
         spellCard:Show()
         spellIconBtn.spellID = cardInfo.spellID
@@ -310,19 +351,36 @@ function AM:UpdateMainFrame()
     learnedSpellText:ClearAllPoints()
     if cardInfo then
         learnedSpellText:SetPoint("TOP", spellCard, "BOTTOM", 0, -10)
+    elseif spellCardLabel:IsShown() then
+        learnedSpellText:SetPoint("TOP", spellCardLabel, "BOTTOM", 0, -6)
     else
         learnedSpellText:SetPoint("TOP", levelUpText, "BOTTOM", 0, -10)
     end
 
-    if s.newestSpell then
-        local sp = s.newestSpell
-        learnedSpellText:SetText(string.format(
-            "%s\n%s\n\n%s",
-            L["SPELL_NEW_ABILITY"],
-            sp.name,
-            L[sp.tutorialKey]
-        ))
-        AM.db.spellTipsSeen[sp.spellID] = true
+    learnedSpellText:SetText("")
+    local pending = self.pendingNewSpellIds
+    self.pendingNewSpellIds = nil
+    if pending and #pending > 0 then
+        local sid = pending[1]
+        local spellName = select(1, self:GetSpellDisplayInfo(sid))
+        local tutorialKey
+        local db = self.Spells and self.Spells.PALADIN
+        if db then
+            for _, row in ipairs(db) do
+                if row and row.spellID == sid then
+                    tutorialKey = row.tutorialKey
+                    break
+                end
+            end
+        end
+        if tutorialKey then
+            learnedSpellText:SetText(string.format(
+                "%s\n%s\n\n%s",
+                L["SPELL_NEW_ABILITY"],
+                spellName,
+                L[tutorialKey]
+            ))
+        end
     end
 end
 

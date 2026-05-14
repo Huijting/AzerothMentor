@@ -179,8 +179,5 @@ function AM:GetPlayerState()
     baseState.guidance = guidance
     baseState.tutorial = tutorial
 
-    -- Spell awareness (Core/Spells.lua): newest tracked spell the player just learned (or nil).
-    baseState.newestSpell = AM:GetNewestKnownSpell()
-
     return baseState
 end

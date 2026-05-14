@@ -11,4 +11,5 @@ Core/Player.lua
 Core/Spells.lua
 Classes/Paladin/Retribution.lua
 UI/MainFrame.lua
+UI/MinimapButton.lua
 Core/Events.lua
