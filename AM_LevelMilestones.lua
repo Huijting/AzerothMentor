@@ -191,6 +191,19 @@ function AM:GetCurrentLevelMilestoneCard()
         actionText = actionText,
         onAccept = function()
             AM:MarkLevelMilestoneSeen(mk)
+            if type(AM.AddLessonLogEntry) == "function" then
+                AM:AddLessonLogEntry({
+                    type = "LEVEL_MILESTONE",
+                    title = title or "",
+                    subtitle = subtitle or "",
+                    body = body or "",
+                    instruction = instruction or "",
+                    level = UnitLevel("player") or 0,
+                    timestamp = time(),
+                    spellID = spellID,
+                    milestoneKey = mk,
+                })
+            end
             if AM.UpdateMainFrame then
                 AM:UpdateMainFrame({ skipDetect = true })
             end

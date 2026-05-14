@@ -33,7 +33,8 @@ local DEBUG_COMBAT_SPELL_CARD = false
 
 --- Logs GetCombatRecommendation snapshot vs branch + spell card chosen.
 --- @param branch string which resolver path returned (mentor_explain, unknown_untracked, latest_learned, combat_mentor, level_milestone, first_known)
-local function FinishSpellCardDisplay(self, result, branch)
+--- @param opts table|nil optional `{ skipLessonLog = true }` for callers that must not persist mentor log entries (e.g. /am status).
+local function FinishSpellCardDisplay(self, result, branch, opts)
     branch = branch or "default"
     if DEBUG_COMBAT_SPELL_CARD then
         local phase = "n/a"
@@ -61,6 +62,29 @@ local function FinishSpellCardDisplay(self, result, branch)
         local ty = result and result.type or "nil"
         local nm = result and (result.title or result.name) or "no title"
         print("Azeroth Mentor card selected: " .. tostring(ty) .. " " .. tostring(nm))
+    end
+    -- Mentor log: spell spotlight / passive paths only (milestone logs on Got it; skip combat noise).
+    if result and type(self.AddLessonLogEntry) == "function" and not (opts and opts.skipLessonLog) then
+        if branch ~= "combat_mentor" and branch ~= "level_milestone" then
+            local title = result.title or result.name
+            if not title or title == "" then
+                title = result.spellID and ("Spell " .. tostring(result.spellID)) or "?"
+            end
+            local body = ""
+            if result.tutorialKey and self.L then
+                body = self.L[result.tutorialKey] or ""
+            end
+            self:AddLessonLogEntry({
+                type = tostring(branch),
+                title = title,
+                subtitle = "",
+                body = body,
+                instruction = "",
+                level = UnitLevel("player") or 0,
+                timestamp = time(),
+                spellID = result.spellID,
+            })
+        end
     end
     return result
 end
@@ -676,8 +700,9 @@ end
 --- In combat: Retribution combat mentor when available.
 --- Out of combat: level milestone → mentor explain → unknown untracked (also suppressed at detect-time if a milestone is active) → latest learned spotlight → default known.
 --- Spec onboarding stays in MainFrame (separate panel).
+--- @param opts table|nil optional `{ skipLessonLog = true }` so diagnostic callers do not append to the lesson log.
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
-function AM:GetSpellCardDisplayInfo()
+function AM:GetSpellCardDisplayInfo(opts)
     local now = GetTime()
     if self._mentorExplainUntil and now >= self._mentorExplainUntil then
         self._mentorExplainUntil = nil
@@ -695,7 +720,7 @@ function AM:GetSpellCardDisplayInfo()
     if UnitAffectingCombat("player") then
         local combatFocus = self:GetRetributionMentorCombatSpellCard()
         if combatFocus then
-            return FinishSpellCardDisplay(self, combatFocus, "combat_mentor")
+            return FinishSpellCardDisplay(self, combatFocus, "combat_mentor", opts)
         end
     end
 
@@ -703,7 +728,7 @@ function AM:GetSpellCardDisplayInfo()
     if type(self.GetCurrentLevelMilestoneCard) == "function" then
         local milestone = self:GetCurrentLevelMilestoneCard()
         if milestone then
-            return FinishSpellCardDisplay(self, milestone, "level_milestone")
+            return FinishSpellCardDisplay(self, milestone, "level_milestone", opts)
         end
     end
 
@@ -720,7 +745,7 @@ function AM:GetSpellCardDisplayInfo()
                     if row and row.spellID == explainId then
                         local info = BuildSpellDisplayInfo(self, row)
                         if info then
-                            return FinishSpellCardDisplay(self, info, "mentor_explain")
+                            return FinishSpellCardDisplay(self, info, "mentor_explain", opts)
                         end
                         break
                     end
@@ -745,7 +770,7 @@ function AM:GetSpellCardDisplayInfo()
                 name = nm,
                 icon = ic,
                 isUnknownUntracked = true,
-            }, "unknown_untracked")
+            }, "unknown_untracked", opts)
         end
     end
 
@@ -758,14 +783,14 @@ function AM:GetSpellCardDisplayInfo()
                 if row and row.spellID == latest then
                     local info = BuildSpellDisplayInfo(self, row)
                     if info then
-                        return FinishSpellCardDisplay(self, info, "latest_learned")
+                        return FinishSpellCardDisplay(self, info, "latest_learned", opts)
                     end
                 end
             end
         end
     end
 
-    return FinishSpellCardDisplay(self, self:GetFirstKnownClassSpell(), "first_known")
+    return FinishSpellCardDisplay(self, self:GetFirstKnownClassSpell(), "first_known", opts)
 end
 
 --------------------------------------------------------------------------------

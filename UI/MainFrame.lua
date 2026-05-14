@@ -517,6 +517,20 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "log clear" then
+        if type(AM.ClearLessonLog) == "function" then
+            AM:ClearLessonLog()
+        end
+        return
+    end
+
+    if lower == "log" then
+        if type(AM.PrintLessonLog) == "function" then
+            AM:PrintLessonLog(5)
+        end
+        return
+    end
+
     if lower == "status" then
         local level = UnitLevel("player") or 0
         local _, classFile = UnitClass("player")
@@ -550,7 +564,7 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         end
         local cardStr = "n/a"
         if type(AM.GetSpellCardDisplayInfo) == "function" then
-            local ok, c = pcall(AM.GetSpellCardDisplayInfo, AM)
+            local ok, c = pcall(AM.GetSpellCardDisplayInfo, AM, { skipLessonLog = true })
             if ok and type(c) == "table" then
                 local ty = c.type or "spell"
                 local title = c.title or c.name or c.tutorialKey or "?"

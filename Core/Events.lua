@@ -27,6 +27,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
         if type(AM.EnsureMilestoneDB) == "function" then
             AM:EnsureMilestoneDB()
         end
+        if type(AM.EnsureLessonLogDB) == "function" then
+            AM:EnsureLessonLogDB()
+        end
     elseif event == "UNIT_POWER_FREQUENT" then
         if arg1 == "player" and AzerothMentorFrame and AzerothMentorFrame:IsShown() then
             AM:UpdateMainFrame({ skipDetect = true })
