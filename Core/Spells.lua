@@ -771,9 +771,45 @@ end
 --------------------------------------------------------------------------------
 -- Default spell card (highest beginner priority among known registry spells)
 --------------------------------------------------------------------------------
+--- Out-of-combat Retribution: rotate among core builders so the default Mentor Tip is not always Crusader Strike.
+local RET_OOC_BUILDER_TIP_ROTATION_SECONDS = 30
+local RET_OOC_BUILDER_SPELL_ORDER = {
+    20271, -- Judgment
+    184575, -- Blade of Justice
+    35395, -- Crusader Strike
+}
+
+--- @param self AM
+--- @param db table
+--- @return table|nil
+local function GetRetributionOocRotatingBuilderCard(self, db)
+    local candidates = {}
+    for _, sid in ipairs(RET_OOC_BUILDER_SPELL_ORDER) do
+        for _, row in ipairs(db) do
+            if row and row.spellID == sid then
+                local info = BuildSpellDisplayInfo(self, row)
+                if info then
+                    candidates[#candidates + 1] = info
+                end
+                break
+            end
+        end
+    end
+    if #candidates == 0 then
+        return nil
+    end
+    if #candidates == 1 then
+        return candidates[1]
+    end
+    local t = math.floor((GetTime() or 0) / RET_OOC_BUILDER_TIP_ROTATION_SECONDS)
+    local idx = (t % #candidates) + 1
+    return candidates[idx]
+end
+
 --- Returns one display-ready Paladin registry spell: the **known** spell with the highest `priority` value.
 --- Ties on `priority`: the earlier row in AM.Spells.PALADIN wins (deterministic).
---- Future: rotation and mentor pacing will use category + priority together; this is the non-“new spell” default card.
+--- Retribution + out of combat: prefers a simple time-rotated pick among Judgment / Blade of Justice / Crusader Strike
+--- when those rows are known (educational variety; not a rotation engine). In combat or other specs: priority only.
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
 function AM:GetFirstKnownClassSpell()
     local _, classFile = UnitClass("player")
@@ -784,6 +820,13 @@ function AM:GetFirstKnownClassSpell()
     local db = self.Spells and self.Spells.PALADIN
     if not db then
         return nil
+    end
+
+    if GetPlayerSpecializationId() == SPEC_ID_RETRIBUTION_PALADIN and not UnitAffectingCombat("player") then
+        local rotated = GetRetributionOocRotatingBuilderCard(self, db)
+        if rotated then
+            return rotated
+        end
     end
 
     local bestInfo
