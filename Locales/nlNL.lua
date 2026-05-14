@@ -110,23 +110,61 @@ if GetLocale() == "nlNL" then
     L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment als Retribution"
     L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
     L.MILESTONE_PALADIN_RET_L10_BODY =
-        "Judgment raakt op middelbare afstand en versterkt je volgende Holy Power-uitgaven. Kern van je rotatie."
-    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Gebruik Judgment vroeg in het gevecht zodat je spenders profiteren."
-    L.MILESTONE_PALADIN_RET_L11_TITLE = "Crusader Strike"
+        "Judgment is een belangrijke Holy Power-builder. Je kunt ermee op afstand beginnen en je volgende aanvallen voorbereiden."
+    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Begin je volgende gevecht met Judgment, loop er dan naartoe en gebruik Crusader Strike."
+    L.MILESTONE_PALADIN_RET_L11_TITLE = "Eerst opbouwen, dan uitgeven"
     L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
     L.MILESTONE_PALADIN_RET_L11_BODY =
-        "Crusader Strike is een melee-builder die Holy Power geeft. Combineer met Judgment voor grotere klappen."
-    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Blijf in melee en weef Crusader Strike tussen andere vaardigheden."
-    L.MILESTONE_PALADIN_RET_L12_TITLE = "Blade of Justice"
+        "Retribution wordt makkelijker als je in twee stappen denkt: bouw eerst Holy Power op, besteed het daarna op een sterkere aanval."
+    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Probeer naar 3 Holy Power te gaan en gebruik dan Templar's Verdict."
+    L.MILESTONE_PALADIN_RET_L12_TITLE = "Verspil geen Holy Power"
     L.MILESTONE_PALADIN_RET_L12_SUBTITLE = "Retribution · Level 12"
     L.MILESTONE_PALADIN_RET_L12_BODY =
-        "Blade of Justice bouwt Holy Power op afstand, handig als je niet veilig kunt meleeën."
-    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "Gebruik het als je Holy Power nodig hebt maar geen Crusader Strike kunt riskeren."
-    L.MILESTONE_PALADIN_RET_L15_TITLE = "Templar's Verdict"
+        "Je kunt maar een beperkte hoeveelheid Holy Power vasthouden. Blijf je opbouwen terwijl je vol zit, dan raakt extra Holy Power verloren."
+    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "Als je bijna vol zit, besteed Holy Power voordat je weer builders gebruikt."
+    L.MILESTONE_PALADIN_RET_L13_TITLE = "Blijf dichtbij voor melee"
+    L.MILESTONE_PALADIN_RET_L13_SUBTITLE = "Retribution · Level 13"
+    L.MILESTONE_PALADIN_RET_L13_BODY =
+        "Sommige Paladin-aanvallen werken alleen dicht bij de vijand. Werkt een melee-vaardigheid niet, dan sta je misschien te ver."
+    L.MILESTONE_PALADIN_RET_L13_INSTRUCTION = "Loop dicht naar je doelwit voordat je Crusader Strike of Templar's Verdict gebruikt."
+    L.MILESTONE_PALADIN_RET_L14_TITLE = "Let op je knoppen"
+    L.MILESTONE_PALADIN_RET_L14_SUBTITLE = "Retribution · Level 14"
+    L.MILESTONE_PALADIN_RET_L14_BODY =
+        "Vaardigheden hebben cooldowns. Is een knop even niet beschikbaar, gebruik dan een andere aanbevolen vaardigheid in plaats van steeds hetzelfde te spammen."
+    L.MILESTONE_PALADIN_RET_L14_INSTRUCTION =
+        "Volg in gevecht de mentor-kaart en wissel van knop als je huidige vaardigheid nog niet klaar is."
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Je eerste talenten"
     L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
     L.MILESTONE_PALADIN_RET_L15_BODY =
-        "Templar's Verdict gebruikt Holy Power voor zware single-target schade. Bouw eerst op, spend daarna."
-    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION = "Als je Holy Power vol is, gebruik Templar's Verdict voor een grote piek."
+        "Talenten kunnen in het begin overweldigend ogen. Je hoeft de hele boom nog niet te snappen. Kies nu liever eenvoudige talenten die vaardigheden verbeteren die je al gebruikt, vooral passieve schade-talenten."
+    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION =
+        "Voeg nog geen stapels nieuwe actieve knoppen toe tot je je prettig voelt bij Judgment, Crusader Strike, Blade of Justice en Templar's Verdict."
+    L.MILESTONE_PALADIN_RET_L16_TITLE = "Blijf Holy Power opbouwen"
+    L.MILESTONE_PALADIN_RET_L16_SUBTITLE = "Retribution · Level 16"
+    L.MILESTONE_PALADIN_RET_L16_BODY =
+        "Je hoofddoel blijft simpel: bouw Holy Power met je basisaanvallen en besteed het voordat je iets verspilt."
+    L.MILESTONE_PALADIN_RET_L16_INSTRUCTION = "Probeer in je volgende gevechten niet te lang op vol Holy Power te blijven staan."
+    L.MILESTONE_PALADIN_RET_L17_TITLE = "Begin gevechten rustig"
+    L.MILESTONE_PALADIN_RET_L17_SUBTITLE = "Retribution · Level 17"
+    L.MILESTONE_PALADIN_RET_L17_BODY =
+        "Als je begint met een afstandsvaardigheid, kun je eerder schade doen voordat de vijand bij je is."
+    L.MILESTONE_PALADIN_RET_L17_INSTRUCTION = "Open met Judgment en gebruik Crusader Strike als de vijand dichtbij is."
+    L.MILESTONE_PALADIN_RET_L18_TITLE = "Als alles op cooldown is"
+    L.MILESTONE_PALADIN_RET_L18_SUBTITLE = "Retribution · Level 18"
+    L.MILESTONE_PALADIN_RET_L18_BODY =
+        "Soms zijn je belangrijkste vaardigheden nog niet klaar. Dat hoort erbij. Wacht kort of pak de volgende beschikbare builder."
+    L.MILESTONE_PALADIN_RET_L18_INSTRUCTION = "Geen paniek als knoppen even grijs zijn. Volg de volgende mentor-suggestie."
+    L.MILESTONE_PALADIN_RET_L19_TITLE = "Besteed voordat je overcap"
+    L.MILESTONE_PALADIN_RET_L19_SUBTITLE = "Retribution · Level 19"
+    L.MILESTONE_PALADIN_RET_L19_BODY =
+        "Blijf je Holy Power opbouwen terwijl je al vol zit, dan raakt extra Holy Power verloren."
+    L.MILESTONE_PALADIN_RET_L19_INSTRUCTION = "Sta je Holy Power hoog, gebruik dan Templar's Verdict voordat je verder bouwt."
+    L.MILESTONE_PALADIN_RET_L20_TITLE = "Je eerste echte ritme"
+    L.MILESTONE_PALADIN_RET_L20_SUBTITLE = "Retribution · Level 20"
+    L.MILESTONE_PALADIN_RET_L20_BODY =
+        "Je hebt nu het begin van een echt Retribution-ritme: Holy Power opbouwen, uitgeven, en herhalen."
+    L.MILESTONE_PALADIN_RET_L20_INSTRUCTION =
+        "Oefen deze lus: Judgment, Crusader Strike, bouw naar 3 Holy Power, dan Templar's Verdict."
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Linksklik om de mentor te openen of sluiten."
 

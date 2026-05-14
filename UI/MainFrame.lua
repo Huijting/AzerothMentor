@@ -257,6 +257,7 @@ local spellIconBtn = CreateFrame("Button", nil, spellCard)
 spellIconBtn:SetSize(32, 32)
 spellIconBtn:SetPoint("CENTER", spellCard, "LEFT", 24, 0)
 spellIconBtn:SetFrameLevel(spellCard:GetFrameLevel() + 2)
+spellIconBtn:EnableMouse(true)
 
 local spellIconTex = spellIconBtn:CreateTexture(nil, "ARTWORK")
 spellIconTex:SetAllPoints()
@@ -300,6 +301,108 @@ milestoneAcceptBtn:SetSize(96, 22)
 milestoneAcceptBtn:SetPoint("BOTTOMRIGHT", spellCard, "BOTTOMRIGHT", -6, 6)
 milestoneAcceptBtn:SetFrameLevel(spellCard:GetFrameLevel() + 4)
 milestoneAcceptBtn:Hide()
+
+--- Strip default / template button art that can leave bright rings or squares after Hide (esp. after hover).
+local function ClearButtonTemplateArt(btn)
+    if not btn then
+        return
+    end
+    btn:UnlockHighlight()
+    pcall(function()
+        btn:SetNormalTexture(nil)
+    end)
+    pcall(function()
+        btn:SetPushedTexture(nil)
+    end)
+    pcall(function()
+        btn:SetHighlightTexture(nil)
+    end)
+    pcall(function()
+        btn:SetDisabledTexture(nil)
+    end)
+    pcall(function()
+        btn:SetCheckedTexture(nil)
+    end)
+    local cd = btn.cooldown or btn.Cooldown
+    if cd and cd.Hide then
+        cd:Hide()
+    end
+    local mask = btn.IconMask
+    if mask and mask.Hide then
+        mask:Hide()
+    end
+end
+
+--- When AM.DEBUG_UI_FRAMES is true, log visible textures under the main frame after each UpdateMainFrame.
+function AM:DebugMentorFrameVisibleNodes()
+    local root = self.mainFrame or _G.AzerothMentorFrame
+    if not root then
+        return
+    end
+    local function walk(frame, depth, path)
+        if not frame or not frame.GetObjectType then
+            return
+        end
+        local ok, isContainer = pcall(function()
+            return frame:IsObjectType("Frame") or frame:IsObjectType("Button") or frame:IsObjectType("CheckButton")
+        end)
+        if not ok or not isContainer then
+            return
+        end
+        local indent = string.rep("  ", depth)
+        local frameShown = frame:IsShown()
+        for _, region in ipairs({ frame:GetRegions() }) do
+            if region and region.IsObjectType and region:IsObjectType("Texture") and region:IsShown() then
+                local a = region:GetAlpha() or 1
+                local r, g, b = region:GetVertexColor()
+                local rname = region:GetName()
+                if frameShown and a > 0.01 then
+                    print(
+                        string.format(
+                            "[Azeroth Mentor][UI] %s tex path=%s name=%s a=%.2f rgb=(%.2f,%.2f,%.2f)",
+                            indent,
+                            path,
+                            tostring(rname),
+                            a,
+                            r or 0,
+                            g or 0,
+                            b or 0
+                        )
+                    )
+                end
+            end
+        end
+        for _, child in ipairs({ frame:GetChildren() }) do
+            if child:IsShown() then
+                local cname = child.GetName and child:GetName()
+                local seg = cname or child:GetObjectType() or "?"
+                walk(child, depth + 1, path .. "/" .. seg)
+            end
+        end
+    end
+    print("[Azeroth Mentor][UI] --- visible texture scan (DEBUG_UI_FRAMES) ---")
+    walk(root, 0, "AzerothMentorFrame")
+end
+
+--- Reset spell card widgets before applying a new card (avoids empty backdrop / stale button art after milestone → spotlight).
+function AM:ClearMentorSpellCardUI()
+    milestoneAcceptBtn:UnlockHighlight()
+    milestoneAcceptBtn:Hide()
+    milestoneAcceptBtn:SetScript("OnClick", nil)
+
+    spellIconBtn:UnlockHighlight()
+    spellIconBtn:Hide()
+    ClearButtonTemplateArt(spellIconBtn)
+    spellIconTex:SetTexture(nil)
+    spellIconTex:SetAlpha(0)
+    spellIconBtn.spellID = nil
+    spellIconBtn:EnableMouse(false)
+
+    spellCardName:SetText("")
+    spellCardTip:SetText("")
+    spellCardTip:SetWidth(CONTENT_WIDTH - 54)
+    spellCard:Hide()
+end
 
 -- Optional footnote region (mentor teaching copy lives on the spell card; avoids duplicating Blizzard unlock banners).
 local learnedSpellText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -475,6 +578,8 @@ function AM:UpdateMainFrame(opts)
         self._newAbilityBanner = false
     end
 
+    self:ClearMentorSpellCardUI()
+
     local cardInfo = self:GetSpellCardDisplayInfo()
     local isMilestone = cardInfo and cardInfo.type == "LEVEL_MILESTONE"
 
@@ -544,9 +649,11 @@ function AM:UpdateMainFrame(opts)
         if cardInfo.type == "LEVEL_MILESTONE" then
             local sid = cardInfo.spellID
             spellIconBtn.spellID = (sid and sid > 0) and sid or nil
-            if cardInfo.icon then
-                spellIconTex:SetTexture(cardInfo.icon)
-            end
+            local ic = cardInfo.icon or 134400
+            spellIconTex:SetTexture(ic)
+            spellIconTex:SetAlpha(1)
+            spellIconBtn:Show()
+            spellIconBtn:EnableMouse(spellIconBtn.spellID ~= nil)
             local titleBlock = cardInfo.title or ""
             if cardInfo.subtitle and cardInfo.subtitle ~= "" then
                 titleBlock = titleBlock .. "\n" .. cardInfo.subtitle
@@ -571,13 +678,14 @@ function AM:UpdateMainFrame(opts)
             spellIconBtn.spellID = cardInfo.spellID
             local dispName, dispIcon = self:GetSpellDisplayInfo(cardInfo.spellID)
             spellIconTex:SetTexture(dispIcon)
+            spellIconTex:SetAlpha(1)
+            spellIconBtn:Show()
+            spellIconBtn:EnableMouse(cardInfo.spellID ~= nil)
             spellCardName:SetText(dispName)
             spellCardTip:SetText(L[cardInfo.tutorialKey])
         end
     else
         spellCard:Hide()
-        milestoneAcceptBtn:Hide()
-        spellIconBtn.spellID = nil
     end
 
     learnedSpellText:ClearAllPoints()
@@ -592,6 +700,10 @@ function AM:UpdateMainFrame(opts)
     learnedSpellText:SetText("")
     if self.pendingNewSpellIds then
         self.pendingNewSpellIds = nil
+    end
+
+    if AM.DEBUG_UI_FRAMES and self.DebugMentorFrameVisibleNodes then
+        self:DebugMentorFrameVisibleNodes()
     end
 end
 

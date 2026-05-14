@@ -111,23 +111,61 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.MILESTONE_PALADIN_RET_L10_TITLE = "Judgment in Retribution"
     L.MILESTONE_PALADIN_RET_L10_SUBTITLE = "Retribution · Level 10"
     L.MILESTONE_PALADIN_RET_L10_BODY =
-        "Judgment strikes from medium range and empowers your next Holy Power spenders. It is a core part of your rotation."
-    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Use Judgment early in a pull so your spenders benefit from its effect."
-    L.MILESTONE_PALADIN_RET_L11_TITLE = "Crusader Strike"
+        "Judgment is one of your important Holy Power builders. It lets you start a fight from range and helps prepare your next attacks."
+    L.MILESTONE_PALADIN_RET_L10_INSTRUCTION = "Open your next fight with Judgment, then move in and use Crusader Strike."
+    L.MILESTONE_PALADIN_RET_L11_TITLE = "Build, then spend"
     L.MILESTONE_PALADIN_RET_L11_SUBTITLE = "Retribution · Level 11"
     L.MILESTONE_PALADIN_RET_L11_BODY =
-        "Crusader Strike is a melee builder that generates Holy Power. Pair it with Judgment to set up bigger hits."
-    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Stay in melee range and weave Crusader Strike between other abilities."
-    L.MILESTONE_PALADIN_RET_L12_TITLE = "Blade of Justice"
+        "Retribution becomes easier when you think in two steps: build Holy Power first, then spend it on a stronger attack."
+    L.MILESTONE_PALADIN_RET_L11_INSTRUCTION = "Try to reach 3 Holy Power, then use Templar's Verdict."
+    L.MILESTONE_PALADIN_RET_L12_TITLE = "Do not waste Holy Power"
     L.MILESTONE_PALADIN_RET_L12_SUBTITLE = "Retribution · Level 12"
     L.MILESTONE_PALADIN_RET_L12_BODY =
-        "Blade of Justice builds Holy Power from range, helping when you cannot stick to the target for a melee swing."
-    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "Use it when you need Holy Power but cannot Crusader Strike safely."
-    L.MILESTONE_PALADIN_RET_L15_TITLE = "Templar's Verdict"
+        "You can only hold a limited amount of Holy Power. If you keep building while full, the extra Holy Power is wasted."
+    L.MILESTONE_PALADIN_RET_L12_INSTRUCTION = "When you are near full Holy Power, spend it before using more builders."
+    L.MILESTONE_PALADIN_RET_L13_TITLE = "Stay close for melee attacks"
+    L.MILESTONE_PALADIN_RET_L13_SUBTITLE = "Retribution · Level 13"
+    L.MILESTONE_PALADIN_RET_L13_BODY =
+        "Some Paladin attacks only work when you are close to the enemy. If a melee ability does not work, you may be too far away."
+    L.MILESTONE_PALADIN_RET_L13_INSTRUCTION = "Move close to your target before using Crusader Strike or Templar's Verdict."
+    L.MILESTONE_PALADIN_RET_L14_TITLE = "Watch your buttons"
+    L.MILESTONE_PALADIN_RET_L14_SUBTITLE = "Retribution · Level 14"
+    L.MILESTONE_PALADIN_RET_L14_BODY =
+        "Abilities have cooldowns. If one button is unavailable, use another recommended ability instead of pressing the same one repeatedly."
+    L.MILESTONE_PALADIN_RET_L14_INSTRUCTION =
+        "During combat, follow the mentor card and switch buttons when your current ability is not ready."
+    L.MILESTONE_PALADIN_RET_L15_TITLE = "Your first talents"
     L.MILESTONE_PALADIN_RET_L15_SUBTITLE = "Retribution · Level 15"
     L.MILESTONE_PALADIN_RET_L15_BODY =
-        "Templar's Verdict spends Holy Power for a strong single-target nuke. Build Holy Power first, then spend it here."
-    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION = "After builders fill your Holy Power bar, press Templar's Verdict for a big spike of damage."
+        "Talents can look overwhelming at first. You do not need to understand the whole tree yet. For now, prefer simple talents that improve abilities you already use, especially passive damage talents."
+    L.MILESTONE_PALADIN_RET_L15_INSTRUCTION =
+        "Avoid adding too many new active buttons until you are comfortable with Judgment, Crusader Strike, Blade of Justice, and Templar's Verdict."
+    L.MILESTONE_PALADIN_RET_L16_TITLE = "Keep building Holy Power"
+    L.MILESTONE_PALADIN_RET_L16_SUBTITLE = "Retribution · Level 16"
+    L.MILESTONE_PALADIN_RET_L16_BODY =
+        "Your main goal is still simple: build Holy Power with your basic attacks, then spend it before you waste any."
+    L.MILESTONE_PALADIN_RET_L16_INSTRUCTION = "In your next fights, try not to sit at full Holy Power for too long."
+    L.MILESTONE_PALADIN_RET_L17_TITLE = "Start fights cleanly"
+    L.MILESTONE_PALADIN_RET_L17_SUBTITLE = "Retribution · Level 17"
+    L.MILESTONE_PALADIN_RET_L17_BODY =
+        "Starting with a ranged ability helps you begin dealing damage before the enemy reaches you."
+    L.MILESTONE_PALADIN_RET_L17_INSTRUCTION = "Try opening with Judgment, then use Crusader Strike when the enemy is close."
+    L.MILESTONE_PALADIN_RET_L18_TITLE = "When everything is on cooldown"
+    L.MILESTONE_PALADIN_RET_L18_SUBTITLE = "Retribution · Level 18"
+    L.MILESTONE_PALADIN_RET_L18_BODY =
+        "Sometimes your main abilities are not ready yet. That is normal. Wait briefly or use the next available builder."
+    L.MILESTONE_PALADIN_RET_L18_INSTRUCTION = "Do not panic when buttons are unavailable. Follow the next mentor suggestion."
+    L.MILESTONE_PALADIN_RET_L19_TITLE = "Spend before you overcap"
+    L.MILESTONE_PALADIN_RET_L19_SUBTITLE = "Retribution · Level 19"
+    L.MILESTONE_PALADIN_RET_L19_BODY =
+        "If you keep building Holy Power while already full, the extra Holy Power is lost."
+    L.MILESTONE_PALADIN_RET_L19_INSTRUCTION = "When you reach high Holy Power, use Templar's Verdict before building more."
+    L.MILESTONE_PALADIN_RET_L20_TITLE = "Your first real rhythm"
+    L.MILESTONE_PALADIN_RET_L20_SUBTITLE = "Retribution · Level 20"
+    L.MILESTONE_PALADIN_RET_L20_BODY =
+        "You now have the start of a real Retribution rhythm: build Holy Power, spend it, and repeat."
+    L.MILESTONE_PALADIN_RET_L20_INSTRUCTION =
+        "Practice this loop: Judgment, Crusader Strike, build to 3 Holy Power, then Templar's Verdict."
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Left-click to open or close the mentor."
 

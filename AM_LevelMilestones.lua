@@ -50,7 +50,7 @@ local function MilestoneSpellKnown(spellID)
     return false
 end
 
--- Paladin + Retribution (levels 1–15 scope); extend for other classes later.
+-- Paladin class gates + Retribution spec gates (extend spec table per level as content grows).
 do
     local M = AzerothMentor_LevelMilestones
     M.PALADIN = M.PALADIN or {}
@@ -65,7 +65,14 @@ do
     M.PALADIN_RETRIBUTION[10] = { milestoneKey = "PALADIN_RET_L10", spellID = 20271 }
     M.PALADIN_RETRIBUTION[11] = { milestoneKey = "PALADIN_RET_L11", spellID = 35395 }
     M.PALADIN_RETRIBUTION[12] = { milestoneKey = "PALADIN_RET_L12", spellID = 184575 }
-    M.PALADIN_RETRIBUTION[15] = { milestoneKey = "PALADIN_RET_L15", spellID = 85256 }
+    M.PALADIN_RETRIBUTION[13] = { milestoneKey = "PALADIN_RET_L13", spellID = 35395 }
+    M.PALADIN_RETRIBUTION[14] = { milestoneKey = "PALADIN_RET_L14", spellID = nil }
+    M.PALADIN_RETRIBUTION[15] = { milestoneKey = "PALADIN_RET_L15", spellID = nil }
+    M.PALADIN_RETRIBUTION[16] = { milestoneKey = "PALADIN_RET_L16", spellID = nil }
+    M.PALADIN_RETRIBUTION[17] = { milestoneKey = "PALADIN_RET_L17", spellID = 20271 }
+    M.PALADIN_RETRIBUTION[18] = { milestoneKey = "PALADIN_RET_L18", spellID = nil }
+    M.PALADIN_RETRIBUTION[19] = { milestoneKey = "PALADIN_RET_L19", spellID = 85256 }
+    M.PALADIN_RETRIBUTION[20] = { milestoneKey = "PALADIN_RET_L20", spellID = nil }
 end
 
 function AM:EnsureMilestoneDB()
@@ -109,7 +116,7 @@ function AM:GetCurrentLevelMilestone()
     if level < 1 then
         return nil
     end
-    local gate = math.min(level, 15)
+    local gate = math.min(level, 20)
     local classFile, specId = GetPlayerClassSpec()
     local M = AzerothMentor_LevelMilestones
     if not M then
