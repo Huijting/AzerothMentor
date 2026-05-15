@@ -121,6 +121,54 @@ local function IsSpellInPaladinRegistry(self, spellID)
     return false
 end
 
+--- @param spellID number
+--- @return table|nil registry row from GENERAL_UNLOCK
+local function GetGeneralUnlockRow(spellID)
+    if not spellID then
+        return nil
+    end
+    local db = AM.Spells and AM.Spells.GENERAL_UNLOCK
+    if not db then
+        return nil
+    end
+    for _, row in ipairs(db) do
+        if row and row.spellID == spellID then
+            return row
+        end
+    end
+    return nil
+end
+
+--- Non-class spellbook learns to ignore (parked for a future Activity Unlock Lessons system).
+local SUPPRESSED_UNTRACKED_SPELL_IDS = {
+    [459988] = true, -- Switch Flight Style (retail)
+    [436854] = true, -- Switch Flight Style (legacy PTR id)
+}
+
+--- @param spellID number
+--- @return boolean
+local function IsSuppressedUntrackedSpell(spellID)
+    return spellID and SUPPRESSED_UNTRACKED_SPELL_IDS[spellID] or false
+end
+
+--- @param self AM
+--- @param spellID number
+--- @return table|nil PALADIN or GENERAL_UNLOCK row
+local function FindRegistryRowForSpell(self, spellID)
+    if not spellID then
+        return nil
+    end
+    local paladin = self.Spells and self.Spells.PALADIN
+    if paladin then
+        for _, row in ipairs(paladin) do
+            if row and row.spellID == spellID then
+                return row
+            end
+        end
+    end
+    return GetGeneralUnlockRow(spellID)
+end
+
 --- Collect spellIDs listed in the player spellbook (General + spec tabs). Used only for Paladin untracked-learn detection.
 --- @return table<number, boolean>
 local function CollectSpellbookSpellIds()
@@ -261,6 +309,13 @@ AM.Spells.PALADIN = {
         priority = 94,
     }, -- Templar's Verdict (Retribution)
     {
+        spellID = 383328,
+        tutorialKey = "SPELL_RET_FINAL_VERDICT",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "spender",
+        priority = 93,
+    }, -- Final Verdict (replaces Templar's Verdict when talented; spellID 383328 — retail learn toast / Wowhead)
+    {
         spellID = 53385,
         tutorialKey = "SPELL_RET_DIVINE_STORM",
         specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
@@ -334,6 +389,16 @@ AM.Spells.PALADIN = {
         category = "utility",
         priority = 61,
     }, -- Intercession (combat rez in group content; spellID 391054 — retail learn toast / Wowhead)
+}
+
+-- Class-neutral spellbook unlocks (riding, travel). Not part of AM.Spells.PALADIN combat mentoring.
+AM.Spells.GENERAL_UNLOCK = {
+    {
+        spellID = 34090,
+        tutorialKey = "SPELL_GENERAL_EXPERT_RIDING",
+        category = "travel",
+        priority = 10,
+    }, -- Expert Riding (riding skill 225; spellID 34090 — retail / Wowhead)
 }
 
 --------------------------------------------------------------------------------
@@ -555,8 +620,14 @@ function AM:DetectUntrackedSpellbookNewSpells()
     table.sort(newList)
 
     local pickedUntracked
+    local pickedGeneralUnlock
     for _, sid in ipairs(newList) do
-        if not IsSpellInPaladinRegistry(self, sid) then
+        if IsSuppressedUntrackedSpell(sid) then
+            -- Parked: future Activity Unlock Lessons (e.g. Switch Flight Style, battlegrounds).
+        elseif GetGeneralUnlockRow(sid) then
+            pickedGeneralUnlock = sid
+            break
+        elseif not IsSpellInPaladinRegistry(self, sid) then
             pickedUntracked = sid
             break
         end
@@ -567,7 +638,20 @@ function AM:DetectUntrackedSpellbookNewSpells()
         self.spellbookIdSnapshot[sid] = true
     end
 
-    if pickedUntracked then
+    if pickedGeneralUnlock then
+        if type(self.GetCurrentLevelMilestone) == "function" and self:GetCurrentLevelMilestone() then
+            DebugSpellDetect(
+                "General unlock learn skipped (current level milestone active): " .. tostring(pickedGeneralUnlock)
+            )
+        else
+            self._newAbilityBanner = true
+            self._mentorExplainSpellID = pickedGeneralUnlock
+            self._mentorExplainUntil = now + MENTOR_SPELL_FOCUS_SECONDS
+            self._unknownUntrackedSpellID = nil
+            self._unknownUntrackedUntil = nil
+            DebugSpellDetect("General unlock spellbook learn: " .. tostring(pickedGeneralUnlock))
+        end
+    elseif pickedUntracked then
         -- Do not queue a generic unknown card while a current-level milestone is available (better level-up UX).
         if type(self.GetCurrentLevelMilestone) == "function" and self:GetCurrentLevelMilestone() then
             DebugSpellDetect(
@@ -770,16 +854,11 @@ function AM:GetSpellCardDisplayInfo(opts)
             self._mentorExplainSpellID = nil
             self.latestLearnedSpellID = nil
         else
-            local db = self.Spells and self.Spells.PALADIN
-            if db then
-                for _, row in ipairs(db) do
-                    if row and row.spellID == explainId then
-                        local info = BuildSpellDisplayInfo(self, row)
-                        if info then
-                            return FinishSpellCardDisplay(self, info, "mentor_explain", opts)
-                        end
-                        break
-                    end
+            local row = FindRegistryRowForSpell(self, explainId)
+            if row then
+                local info = BuildSpellDisplayInfo(self, row)
+                if info then
+                    return FinishSpellCardDisplay(self, info, "mentor_explain", opts)
                 end
             end
         end
@@ -788,7 +867,10 @@ function AM:GetSpellCardDisplayInfo(opts)
     local unkId = self._unknownUntrackedSpellID
     local unkUntil = self._unknownUntrackedUntil
     if unkId and unkUntil and now < unkUntil then
-        if not self:IsSpellKnownSafe(unkId) or IsSpellInPaladinRegistry(self, unkId) then
+        if not self:IsSpellKnownSafe(unkId)
+            or IsSpellInPaladinRegistry(self, unkId)
+            or GetGeneralUnlockRow(unkId)
+            or IsSuppressedUntrackedSpell(unkId) then
             self._unknownUntrackedSpellID = nil
             self._unknownUntrackedUntil = nil
         else

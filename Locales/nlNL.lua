@@ -60,6 +60,8 @@ if GetLocale() == "nlNL" then
         "Als Retribution gebruik je Judgment vaak op middelbare afstand. Het raakt je doelwit en maakt je volgende Holy Power-uitgaven sterker."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict gebruikt Holy Power voor een harde single-target aanval. Bouw eerst Holy Power op en gebruik het als je één groot slag wilt uitdelen."
+    L.SPELL_RET_FINAL_VERDICT =
+        "Final Verdict hoort bij je Holy Power-spender gameplay. Met dit talent vervangt het Templar's Verdict op je actiebalk en verandert hoe je als Retribution zware single-target damage doet.\n\nBlijf hetzelfde basisidee volgen: bouw eerst Holy Power op en geef het daarna uit aan je sterkste single-target spender."
     L.SPELL_RET_DIVINE_STORM =
         "Divine Storm gebruikt Holy Power om meerdere vijanden dichtbij te raken. Gebruik Templar's Verdict tegen één vijand, en Divine Storm als je tegen meerdere vijanden tegelijk vecht.\n\nIs er maar één vijand, blijf dan Templar's Verdict gebruiken. Staan er meerdere vijanden dichtbij, dan wordt Divine Storm nuttig."
     L.SPELL_RET_CONSECRATED_BLADE =
@@ -88,6 +90,8 @@ if GetLocale() == "nlNL" then
         "Met Intercession kun je een dode vriendelijke speler terugbrengen tijdens gevaarlijke groepsmomenten. Het is vooral handig in dungeons of groepscontent als iemand doodgaat.\n\nTijdens solo questen gebruik je Intercession meestal niet. Het hoort niet bij je normale damage-rotatie."
     L.SPELL_PALADIN_LAY_ON_HANDS =
         "Lay on Hands is een krachtige nood-heal. Het kan veel gezondheid herstellen, maar heeft een lange cooldown.\n\nBewaar Lay on Hands voor gevaarlijke momenten waarop jij of een belangrijke vriendelijke speler bijna doodgaat. Het hoort niet bij je normale damage-rotatie."
+    L.SPELL_GENERAL_EXPERT_RIDING =
+        "Expert Riding verbetert je rij- en vliegvaardigheid. Dit helpt je sneller te reizen, maar hoort niet bij je Paladin-gevechtsvaardigheden.\n\nGebruik rijden en vliegen om sneller door de wereld te reizen. Het verandert je damage-rotatie niet."
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."

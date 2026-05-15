@@ -61,6 +61,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "As Retribution, use Judgment often from medium range. It hurts your target and makes your next Holy Power spenders hit harder."
     L.SPELL_RET_TEMPLARS_VERDICT =
         "Templar's Verdict spends Holy Power for a strong single-target attack. Build Holy Power with builders first, then use it when you want a big hit."
+    L.SPELL_RET_FINAL_VERDICT =
+        "Final Verdict is connected to your Holy Power spender gameplay. When you take this talent, it replaces Templar's Verdict on your action bar and changes how you deal heavy single-target damage as Retribution.\n\nKeep following the same idea: build Holy Power first, then spend it on your strongest single-target spender."
     L.SPELL_RET_DIVINE_STORM =
         "Divine Storm spends Holy Power to hit multiple nearby enemies. Use Templar's Verdict for one enemy, and Divine Storm when you are fighting several enemies close together.\n\nIf there is only one enemy, keep using Templar's Verdict. If several enemies are near you, Divine Storm becomes useful."
     L.SPELL_RET_CONSECRATED_BLADE =
@@ -89,6 +91,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Intercession lets you bring a dead friendly player back during dangerous group moments. It is useful in dungeons or group content when someone dies.\n\nYou usually do not use Intercession while solo questing. It is not part of your normal damage rotation."
     L.SPELL_PALADIN_LAY_ON_HANDS =
         "Lay on Hands is a powerful emergency heal. It can restore a large amount of health, but it has a long cooldown.\n\nSave Lay on Hands for dangerous moments when you or an important friendly target might die. It is not part of your normal damage rotation."
+    L.SPELL_GENERAL_EXPERT_RIDING =
+        "Expert Riding improves your riding and flying skill. This helps you travel faster, but it is not part of your Paladin combat abilities.\n\nUse riding and flying to move around the world faster. It does not change your damage rotation."
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."
