@@ -548,6 +548,9 @@ function AM:ToggleMainFrame()
         f:Hide()
     else
         f:Show()
+        if type(self.HideLessonToast) == "function" then
+            self:HideLessonToast()
+        end
     end
 end
 
@@ -570,6 +573,24 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
     if lower == "retstate" then
         if AM.RetributionCombat and AM.RetributionCombat.PrintStateToChat then
             AM.RetributionCombat:PrintStateToChat()
+        end
+        return
+    end
+
+    if lower == "toast reset" then
+        if type(AM.ResetLessonToastAcknowledgements) == "function" then
+            AM:ResetLessonToastAcknowledgements()
+        end
+        print("Azeroth Mentor: lesson toast acknowledgements reset.")
+        if type(AM.UpdateMainFrame) == "function" then
+            AM:UpdateMainFrame({ skipDetect = true })
+        end
+        return
+    end
+
+    if lower == "toast status" then
+        if type(AM.PrintLessonToastStatus) == "function" then
+            AM:PrintLessonToastStatus()
         end
         return
     end
@@ -954,6 +975,10 @@ function AM:UpdateMainFrame(opts)
 
     if AM.DEBUG_UI_FRAMES and self.DebugMentorFrameVisibleNodes then
         self:DebugMentorFrameVisibleNodes()
+    end
+
+    if type(self.MaybeShowLessonToastForCurrentCard) == "function" then
+        self:MaybeShowLessonToastForCurrentCard(cardInfo)
     end
 end
 

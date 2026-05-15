@@ -180,6 +180,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "You now have the start of a real Retribution rhythm: build Holy Power, spend it, and repeat."
     L.MILESTONE_PALADIN_RET_L20_INSTRUCTION =
         "Practice this loop: Judgment, Crusader Strike, build to 3 Holy Power, then Templar's Verdict."
+    L.LESSON_TOAST_TITLE = "New lesson available"
+    L.LESSON_TOAST_SUBTITLE = "Click to open Azeroth Mentor"
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Left-click to open or close the mentor."
 

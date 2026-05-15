@@ -179,6 +179,8 @@ if GetLocale() == "nlNL" then
         "Je hebt nu het begin van een echt Retribution-ritme: Holy Power opbouwen, uitgeven, en herhalen."
     L.MILESTONE_PALADIN_RET_L20_INSTRUCTION =
         "Oefen deze lus: Judgment, Crusader Strike, bouw naar 3 Holy Power, dan Templar's Verdict."
+    L.LESSON_TOAST_TITLE = "Nieuwe les beschikbaar"
+    L.LESSON_TOAST_SUBTITLE = "Klik om Azeroth Mentor te openen"
     L.MINIMAP_TOOLTIP_TITLE = "Azeroth Mentor"
     L.MINIMAP_TOOLTIP_LEFT_CLICK = "Linksklik om de mentor te openen of sluiten."
 
