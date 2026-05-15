@@ -92,8 +92,30 @@ end)
 -- Content width leaves room for the close button and frame padding.
 --------------------------------------------------------------------------------
 local CONTENT_WIDTH = 318
+-- Spell card internal layout (icon + title + tip stay inside the backdrop).
+local SPELL_CARD_PAD_LEFT = 12
+local SPELL_CARD_PAD_TOP = 10
+local SPELL_CARD_PAD_RIGHT = 10
+local SPELL_CARD_PAD_BOTTOM = 12
+local SPELL_CARD_ICON_SIZE = 32
+local SPELL_CARD_ICON_GAP = 10
+local SPELL_CARD_TEXT_LEFT = SPELL_CARD_PAD_LEFT + SPELL_CARD_ICON_SIZE + SPELL_CARD_ICON_GAP
+local SPELL_CARD_GAP_NAME_TIP = 8
+local SPELL_CARD_MIN_NORMAL = 58
+local SPELL_CARD_MIN_MILESTONE = 104
+local SPELL_CARD_MILESTONE_TIP_RESERVE = 104
+local SPELL_CARD_MILESTONE_BTN_H = 22
+local SPELL_CARD_MILESTONE_BTN_INSET = 8
 -- Retribution specialization id (matches Core/Player.lua).
 local SPEC_ID_RETRIBUTION_PALADIN = 70
+
+local function SpellCardTextWidth(hasMilestoneBtn)
+    local w = CONTENT_WIDTH - SPELL_CARD_TEXT_LEFT - SPELL_CARD_PAD_RIGHT
+    if hasMilestoneBtn then
+        w = w - SPELL_CARD_MILESTONE_TIP_RESERVE
+    end
+    return math.max(w, 120)
+end
 
 local titleText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 titleText:SetPoint("TOP", AzerothMentorFrame, "TOP", 0, -18)
@@ -238,7 +260,7 @@ spellCardLabel:EnableMouse(false)
 
 -- Spell card: mentor copy + icon (tooltip on icon). Blizzard announces unlocks; this panel teaches usage.
 local spellCard = CreateFrame("Frame", nil, AzerothMentorFrame, "BackdropTemplate")
-spellCard:SetSize(CONTENT_WIDTH, 54)
+spellCard:SetSize(CONTENT_WIDTH, SPELL_CARD_MIN_NORMAL)
 spellCard:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
 spellCard:SetFrameLevel(AzerothMentorFrame:GetFrameLevel() + 3)
 spellCard:SetBackdrop({
@@ -254,8 +276,8 @@ spellCard:SetBackdropBorderColor(0.22, 0.2, 0.18, 0.65)
 spellCard:Hide()
 
 local spellIconBtn = CreateFrame("Button", nil, spellCard)
-spellIconBtn:SetSize(32, 32)
-spellIconBtn:SetPoint("CENTER", spellCard, "LEFT", 24, 0)
+spellIconBtn:SetSize(SPELL_CARD_ICON_SIZE, SPELL_CARD_ICON_SIZE)
+spellIconBtn:SetPoint("TOPLEFT", spellCard, "TOPLEFT", SPELL_CARD_PAD_LEFT, -SPELL_CARD_PAD_TOP)
 spellIconBtn:SetFrameLevel(spellCard:GetFrameLevel() + 2)
 spellIconBtn:EnableMouse(true)
 
@@ -279,16 +301,16 @@ spellIconBtn:SetScript("OnLeave", function()
 end)
 
 local spellCardName = spellCard:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-spellCardName:SetPoint("TOPLEFT", spellIconBtn, "TOPRIGHT", 10, -2)
-spellCardName:SetWidth(CONTENT_WIDTH - 54)
+spellCardName:SetPoint("TOPLEFT", spellIconBtn, "TOPRIGHT", SPELL_CARD_ICON_GAP, 0)
+spellCardName:SetWidth(SpellCardTextWidth(false))
 spellCardName:SetJustifyH("LEFT")
 spellCardName:SetJustifyV("TOP")
 spellCardName:SetWordWrap(true)
 spellCardName:EnableMouse(false)
 
 local spellCardTip = spellCard:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-spellCardTip:SetPoint("TOPLEFT", spellCardName, "BOTTOMLEFT", 0, -6)
-spellCardTip:SetWidth(CONTENT_WIDTH - 54)
+spellCardTip:SetPoint("TOPLEFT", spellCardName, "BOTTOMLEFT", 0, -SPELL_CARD_GAP_NAME_TIP)
+spellCardTip:SetWidth(SpellCardTextWidth(false))
 spellCardTip:SetJustifyH("LEFT")
 spellCardTip:SetJustifyV("TOP")
 spellCardTip:SetWordWrap(true)
@@ -297,10 +319,61 @@ spellCardTip:SetTextColor(0.72, 0.78, 0.9)
 spellCardTip:EnableMouse(false)
 
 local milestoneAcceptBtn = CreateFrame("Button", nil, spellCard, "UIPanelButtonTemplate")
-milestoneAcceptBtn:SetSize(96, 22)
-milestoneAcceptBtn:SetPoint("BOTTOMRIGHT", spellCard, "BOTTOMRIGHT", -6, 6)
+milestoneAcceptBtn:SetSize(96, SPELL_CARD_MILESTONE_BTN_H)
+milestoneAcceptBtn:SetPoint(
+    "BOTTOMRIGHT",
+    spellCard,
+    "BOTTOMRIGHT",
+    -SPELL_CARD_MILESTONE_BTN_INSET,
+    SPELL_CARD_MILESTONE_BTN_INSET
+)
 milestoneAcceptBtn:SetFrameLevel(spellCard:GetFrameLevel() + 4)
 milestoneAcceptBtn:Hide()
+
+--- Size spell card from measured title + tip text (call after SetText / SetWidth).
+local function ApplySpellCardLayout(isMilestone)
+    local hasBtn = milestoneAcceptBtn:IsShown()
+    local textW = SpellCardTextWidth(hasBtn)
+
+    spellIconBtn:ClearAllPoints()
+    spellIconBtn:SetPoint("TOPLEFT", spellCard, "TOPLEFT", SPELL_CARD_PAD_LEFT, -SPELL_CARD_PAD_TOP)
+
+    spellCardName:SetWidth(textW)
+    spellCardName:ClearAllPoints()
+    spellCardName:SetPoint("TOPLEFT", spellIconBtn, "TOPRIGHT", SPELL_CARD_ICON_GAP, 0)
+
+    spellCardTip:SetWidth(textW)
+    spellCardTip:ClearAllPoints()
+    spellCardTip:SetPoint("TOPLEFT", spellCardName, "BOTTOMLEFT", 0, -SPELL_CARD_GAP_NAME_TIP)
+
+    local nameH = spellCardName:GetStringHeight()
+    if not nameH or nameH < 1 then
+        nameH = 14
+    end
+    local tipH = spellCardTip:GetStringHeight()
+    if not tipH or tipH < 1 then
+        tipH = 14
+    end
+
+    local bottomPad = SPELL_CARD_PAD_BOTTOM
+    if hasBtn then
+        bottomPad = bottomPad + SPELL_CARD_MILESTONE_BTN_INSET + SPELL_CARD_MILESTONE_BTN_H
+    end
+
+    local textStack = SPELL_CARD_PAD_TOP + nameH + SPELL_CARD_GAP_NAME_TIP + tipH + bottomPad
+    local iconStack = SPELL_CARD_PAD_TOP + SPELL_CARD_ICON_SIZE + SPELL_CARD_PAD_BOTTOM
+    local minH = isMilestone and SPELL_CARD_MIN_MILESTONE or SPELL_CARD_MIN_NORMAL
+    spellCard:SetHeight(math.max(minH, textStack, iconStack))
+
+    milestoneAcceptBtn:ClearAllPoints()
+    milestoneAcceptBtn:SetPoint(
+        "BOTTOMRIGHT",
+        spellCard,
+        "BOTTOMRIGHT",
+        -SPELL_CARD_MILESTONE_BTN_INSET,
+        SPELL_CARD_MILESTONE_BTN_INSET
+    )
+end
 
 --- Strip default / template button art that can leave bright rings or squares after Hide (esp. after hover).
 local function ClearButtonTemplateArt(btn)
@@ -400,7 +473,8 @@ function AM:ClearMentorSpellCardUI()
 
     spellCardName:SetText("")
     spellCardTip:SetText("")
-    spellCardTip:SetWidth(CONTENT_WIDTH - 54)
+    spellCardTip:SetWidth(SpellCardTextWidth(false))
+    spellCard:SetHeight(SPELL_CARD_MIN_NORMAL)
     spellCard:Hide()
 end
 
@@ -811,25 +885,11 @@ function AM:UpdateMainFrame(opts)
         spellCard:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset)
     end
 
-    if showMentorTipLabel then
-        if isMilestone then
-            spellCard:SetHeight(112)
-            spellCardTip:SetFontObject(GameFontHighlight)
-            spellCardTip:SetSpacing(4)
-        else
-            spellCard:SetHeight(64)
-            spellCardTip:SetFontObject(GameFontHighlight)
-            spellCardTip:SetSpacing(5)
-        end
-    else
-        spellCard:SetHeight(54)
-        spellCardTip:SetFontObject(GameFontHighlightSmall)
-        spellCardTip:SetSpacing(2)
-    end
-
     if cardInfo then
         spellCard:Show()
         if cardInfo.type == "LEVEL_MILESTONE" then
+            spellCardTip:SetFontObject(GameFontHighlight)
+            spellCardTip:SetSpacing(4)
             local sid = cardInfo.spellID
             spellIconBtn.spellID = (sid and sid > 0) and sid or nil
             local ic = cardInfo.icon or 134400
@@ -846,7 +906,6 @@ function AM:UpdateMainFrame(opts)
             if cardInfo.instruction and cardInfo.instruction ~= "" then
                 tip = tip .. "\n\n" .. cardInfo.instruction
             end
-            spellCardTip:SetWidth(CONTENT_WIDTH - 54 - 100)
             spellCardTip:SetText(tip)
             milestoneAcceptBtn:SetText(cardInfo.actionText or L["MILESTONE_ACTION_GOT_IT"])
             milestoneAcceptBtn:Show()
@@ -855,9 +914,16 @@ function AM:UpdateMainFrame(opts)
                     cardInfo.onAccept()
                 end
             end)
+            ApplySpellCardLayout(true)
         else
+            if showMentorTipLabel then
+                spellCardTip:SetFontObject(GameFontHighlight)
+                spellCardTip:SetSpacing(5)
+            else
+                spellCardTip:SetFontObject(GameFontHighlightSmall)
+                spellCardTip:SetSpacing(2)
+            end
             milestoneAcceptBtn:Hide()
-            spellCardTip:SetWidth(CONTENT_WIDTH - 54)
             spellIconBtn.spellID = cardInfo.spellID
             local dispName, dispIcon = self:GetSpellDisplayInfo(cardInfo.spellID)
             spellIconTex:SetTexture(dispIcon)
@@ -865,7 +931,8 @@ function AM:UpdateMainFrame(opts)
             spellIconBtn:Show()
             spellIconBtn:EnableMouse(cardInfo.spellID ~= nil)
             spellCardName:SetText(dispName)
-            spellCardTip:SetText(L[cardInfo.tutorialKey])
+            spellCardTip:SetText(L[cardInfo.tutorialKey] or "")
+            ApplySpellCardLayout(false)
         end
     else
         spellCard:Hide()
