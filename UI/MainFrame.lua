@@ -597,6 +597,92 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "xpbar show" then
+        if type(AM.XPBarShow) == "function" then
+            AM:XPBarShow()
+        end
+        return
+    end
+
+    if lower == "xpbar hide" then
+        if type(AM.XPBarHide) == "function" then
+            AM:XPBarHide()
+        end
+        return
+    end
+
+    if lower == "xpbar lock" then
+        if type(AM.XPBarSetLocked) == "function" then
+            AM:XPBarSetLocked(true)
+        end
+        return
+    end
+
+    if lower == "xpbar unlock" then
+        if type(AM.XPBarSetLocked) == "function" then
+            AM:XPBarSetLocked(false)
+        end
+        return
+    end
+
+    if lower == "xpbar reset" then
+        if type(AM.XPBarReset) == "function" then
+            AM:XPBarReset()
+        end
+        return
+    end
+
+    if lower == "xpbar status" then
+        if type(AM.XPBarPrintStatus) == "function" then
+            AM:XPBarPrintStatus()
+        end
+        return
+    end
+
+    if lower == "xpbar fontsize" then
+        print("[Azeroth Mentor] Usage: /am xpbar fontsize <number>  (body 8-24; chrome title uses body + 2)")
+        return
+    end
+
+    if lower == "xpbar reloadbutton on" then
+        if type(AM.XPBarSetReloadButtonShown) == "function" then
+            AM:XPBarSetReloadButtonShown(true)
+        end
+        return
+    end
+
+    if lower == "xpbar reloadbutton off" then
+        if type(AM.XPBarSetReloadButtonShown) == "function" then
+            AM:XPBarSetReloadButtonShown(false)
+        end
+        return
+    end
+
+    do
+        local fsArg = string.match(lower, "^xpbar fontsize%s+(.+)$")
+        if fsArg then
+            if type(AM.XPBarSetFontSize) == "function" then
+                AM:XPBarSetFontSize(tonumber(strtrim(fsArg)))
+            end
+            return
+        end
+    end
+
+    if lower == "xpbar scale" then
+        print("[Azeroth Mentor] Usage: /am xpbar scale <number>  (allowed: 0.5 to 2.5, e.g. 1.2)")
+        return
+    end
+
+    do
+        local scaleArg = string.match(lower, "^xpbar scale%s+(.+)$")
+        if scaleArg then
+            if type(AM.XPBarSetScale) == "function" then
+                AM:XPBarSetScale(tonumber(strtrim(scaleArg)))
+            end
+            return
+        end
+    end
+
     AM:ToggleMainFrame()
 end
 

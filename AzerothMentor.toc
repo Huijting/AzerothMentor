@@ -16,4 +16,5 @@ Classes/Paladin/RetributionCombat.lua
 AM_LevelMilestones.lua
 UI/MainFrame.lua
 UI/MinimapButton.lua
+UI/XPBar.lua
 Core/Events.lua
