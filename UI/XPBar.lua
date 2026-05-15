@@ -12,8 +12,8 @@ local FONT_BODY_MIN = 8
 local FONT_BODY_MAX = 24
 local FONT_BODY_DEFAULT = 13
 
--- XP progress fill (bright mentor gold; StatusBar tint).
-local XP_BAR_FILL_R, XP_BAR_FILL_G, XP_BAR_FILL_B, XP_BAR_FILL_A = 1.0, 0.72, 0.05, 1.0
+-- XP progress fill (bright gold; StatusBar tint).
+local XP_BAR_FILL_R, XP_BAR_FILL_G, XP_BAR_FILL_B, XP_BAR_FILL_A = 1.0, 0.82, 0.0, 1.0
 
 local eventFrame
 local xpRoot
@@ -501,9 +501,49 @@ function AM:XPBarInit()
         f.reloadButton = reloadBtn
     end
 
+    if not f.mentorToggleButton then
+        local mentorBtn = CreateFrame("Button", "AzerothMentorXPBarMentorButton", f)
+        mentorBtn:SetSize(18, 18)
+        mentorBtn:SetPoint("TOPRIGHT", f.reloadButton, "TOPLEFT", -2, 0)
+        mentorBtn:SetFrameLevel(f:GetFrameLevel() + 24)
+        mentorBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        mentorBtn:SetNormalFontObject("GameFontHighlightSmall")
+        mentorBtn:SetHighlightFontObject("GameFontHighlightSmall")
+        mentorBtn:SetText("M")
+        local mbg = mentorBtn:CreateTexture(nil, "BACKGROUND")
+        mbg:SetAllPoints()
+        mbg:SetColorTexture(0.12, 0.12, 0.16, 0.9)
+        mentorBtn:SetScript("OnClick", function(_, button)
+            if button ~= "LeftButton" then
+                return
+            end
+            local mf = AM.mainFrame or _G.AzerothMentorFrame
+            if mf and mf.IsShown and mf:IsShown() then
+                mf:Hide()
+            else
+                if mf then
+                    mf:Show()
+                end
+                if type(AM.UpdateMainFrame) == "function" then
+                    AM:UpdateMainFrame()
+                end
+            end
+        end)
+        mentorBtn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+            GameTooltip:SetText("Toggle Azeroth Mentor", 1, 1, 1)
+            GameTooltip:AddLine("Click to open or close the mentor frame", 1, 0.82, 0, true)
+            GameTooltip:Show()
+        end)
+        mentorBtn:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        f.mentorToggleButton = mentorBtn
+    end
+
     local title = f:CreateFontString(nil, "OVERLAY")
     title:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -6)
-    title:SetPoint("TOPRIGHT", f.reloadButton, "TOPLEFT", -6, 0)
+    title:SetPoint("TOPRIGHT", f.mentorToggleButton, "TOPLEFT", -6, 0)
     title:SetJustifyH("LEFT")
     ApplyXPBarFontString(title, titleSz)
     title:SetTextColor(0.95, 0.82, 0.45)

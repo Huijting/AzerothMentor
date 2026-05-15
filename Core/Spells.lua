@@ -281,6 +281,12 @@ AM.Spells.PALADIN = {
         priority = 90,
     }, -- Word of Glory
     {
+        spellID = 633,
+        tutorialKey = "SPELL_PALADIN_LAY_ON_HANDS",
+        category = "heal",
+        priority = 79,
+    }, -- Lay on Hands (class-wide emergency heal; long cooldown; not damage rotation)
+    {
         spellID = 53600,
         tutorialKey = "SPELL_PALADIN_SHIELD_OF_THE_RIGHTEOUS",
         category = "defensive",

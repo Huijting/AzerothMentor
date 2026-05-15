@@ -84,6 +84,8 @@ if GetLocale() == "nlNL" then
         "Hand of Reckoning daagt een vijand uit, waardoor die zich op jou richt. Wees voorzichtig: dit is vooral nuttig als je tank bent."
     L.SPELL_PALADIN_REDEMPTION =
         "Met Redemption kun je een dode vriendelijke speler weer tot leven brengen. Dit is vooral handig in groepen nadat iemand is gestorven.\n\nJe gebruikt Redemption meestal buiten gevecht. Het hoort niet bij je normale damage-rotatie."
+    L.SPELL_PALADIN_LAY_ON_HANDS =
+        "Lay on Hands is een krachtige nood-heal. Het kan veel gezondheid herstellen, maar heeft een lange cooldown.\n\nBewaar Lay on Hands voor gevaarlijke momenten waarop jij of een belangrijke vriendelijke speler bijna doodgaat. Het hoort niet bij je normale damage-rotatie."
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."

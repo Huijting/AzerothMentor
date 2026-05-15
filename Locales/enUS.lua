@@ -85,6 +85,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Hand of Reckoning taunts an enemy, making it focus on you. Be careful: this is mostly useful when you are tanking."
     L.SPELL_PALADIN_REDEMPTION =
         "Redemption lets you bring a dead friendly player back to life. This is useful in groups after someone dies.\n\nYou usually use Redemption outside combat. It is not part of your normal damage rotation."
+    L.SPELL_PALADIN_LAY_ON_HANDS =
+        "Lay on Hands is a powerful emergency heal. It can restore a large amount of health, but it has a long cooldown.\n\nSave Lay on Hands for dangerous moments when you or an important friendly target might die. It is not part of your normal damage rotation."
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."
