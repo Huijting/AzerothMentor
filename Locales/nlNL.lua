@@ -84,6 +84,8 @@ if GetLocale() == "nlNL" then
         "Hand of Reckoning daagt een vijand uit, waardoor die zich op jou richt. Wees voorzichtig: dit is vooral nuttig als je tank bent."
     L.SPELL_PALADIN_REDEMPTION =
         "Met Redemption kun je een dode vriendelijke speler weer tot leven brengen. Dit is vooral handig in groepen nadat iemand is gestorven.\n\nJe gebruikt Redemption meestal buiten gevecht. Het hoort niet bij je normale damage-rotatie."
+    L.SPELL_PALADIN_INTERCESSION =
+        "Met Intercession kun je een dode vriendelijke speler terugbrengen tijdens gevaarlijke groepsmomenten. Het is vooral handig in dungeons of groepscontent als iemand doodgaat.\n\nTijdens solo questen gebruik je Intercession meestal niet. Het hoort niet bij je normale damage-rotatie."
     L.SPELL_PALADIN_LAY_ON_HANDS =
         "Lay on Hands is een krachtige nood-heal. Het kan veel gezondheid herstellen, maar heeft een lange cooldown.\n\nBewaar Lay on Hands voor gevaarlijke momenten waarop jij of een belangrijke vriendelijke speler bijna doodgaat. Het hoort niet bij je normale damage-rotatie."
     L.LEVEL_UP = "Level omhoog!"

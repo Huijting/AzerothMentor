@@ -328,6 +328,12 @@ AM.Spells.PALADIN = {
         category = "utility",
         priority = 62,
     }, -- Redemption (resurrect dead allies; not a combat damage button)
+    {
+        spellID = 391054,
+        tutorialKey = "SPELL_PALADIN_INTERCESSION",
+        category = "utility",
+        priority = 61,
+    }, -- Intercession (combat rez in group content; spellID 391054 — retail learn toast / Wowhead)
 }
 
 --------------------------------------------------------------------------------
