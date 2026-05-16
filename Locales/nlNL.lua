@@ -32,15 +32,15 @@ if GetLocale() == "nlNL" then
     L.RET_GUIDANCE =
         "Retribution Paladins bouwen Holy Power op met basisaanvallen en gebruiken het daarna voor sterkere vaardigheden."
     L.RET_TUTORIAL =
-        "Gebruik Judgment, Blade of Justice en Crusader Strike om Holy Power op te bouwen en geef het daarna uit met Templar's Verdict."
+        "Gebruik Judgment, Blade of Justice en Crusader Strike om Holy Power op te bouwen en geef het daarna uit met je single-target spender."
     L.RET_HOLY_POWER_LABEL = "Holy Power: %d / %d"
     L.RET_HOLY_POWER_BUILD = "Bouw Holy Power op met Judgment, Blade of Justice en Crusader Strike."
-    L.RET_HOLY_POWER_SPEND =
-        "Je hebt genoeg Holy Power. Gebruik een spender zoals Templar's Verdict."
+    L.RET_HOLY_POWER_SPEND = "Je hebt genoeg Holy Power. Gebruik je single-target spender."
     L.RET_COMBAT_LINE_OOC =
-        "Buiten gevecht: oefen Judgment, Blade of Justice en Crusader Strike zodat je klaar bent om Holy Power op te bouwen in een gevecht."
-    L.RET_COMBAT_LINE_BUILD = "Gebruik Blade of Justice, Crusader Strike of Judgment om Holy Power op te bouwen."
-    L.RET_COMBAT_LINE_SPEND = "Gebruik nu Templar's Verdict voor zware schade."
+        "Begin met Judgment of Blade of Justice, loop er dan naartoe en gebruik Crusader Strike."
+    L.RET_COMBAT_LINE_BUILD =
+        "Bouw Holy Power op met Judgment, Blade of Justice of Crusader Strike."
+    L.RET_COMBAT_LINE_SPEND = "Geef Holy Power uit met je single-target spender."
     L.LABEL_CHARACTER = "Personage"
     L.LABEL_CLASS = "Klasse"
     L.LABEL_SPEC = "Specialisatie"

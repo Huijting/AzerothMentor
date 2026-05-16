@@ -34,14 +34,15 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.RET_GUIDANCE =
         "Retribution Paladins build Holy Power with basic attacks and spend it on stronger abilities."
     L.RET_TUTORIAL =
-        "Use Judgment, Blade of Justice, and Crusader Strike to build Holy Power, then spend it with Templar's Verdict."
+        "Use Judgment, Blade of Justice, and Crusader Strike to build Holy Power, then spend it with your single-target spender."
     L.RET_HOLY_POWER_LABEL = "Holy Power: %d / %d"
     L.RET_HOLY_POWER_BUILD = "Build Holy Power with Judgment, Blade of Justice, and Crusader Strike."
-    L.RET_HOLY_POWER_SPEND = "You have enough Holy Power. Use a spender like Templar's Verdict."
+    L.RET_HOLY_POWER_SPEND = "You have enough Holy Power. Use your single-target spender."
     L.RET_COMBAT_LINE_OOC =
-        "Out of combat: practice Judgment, Blade of Justice, and Crusader Strike so you are ready to build Holy Power in a fight."
-    L.RET_COMBAT_LINE_BUILD = "Use Blade of Justice, Crusader Strike, or Judgment to build Holy Power."
-    L.RET_COMBAT_LINE_SPEND = "Use Templar's Verdict now for heavy damage."
+        "Start with Judgment or Blade of Justice, then move in and use Crusader Strike."
+    L.RET_COMBAT_LINE_BUILD =
+        "Build Holy Power with Judgment, Blade of Justice, or Crusader Strike."
+    L.RET_COMBAT_LINE_SPEND = "Spend Holy Power with your single-target spender."
     L.LABEL_CHARACTER = "Character"
     L.LABEL_CLASS = "Class"
     L.LABEL_SPEC = "Spec"

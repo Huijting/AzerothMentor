@@ -25,9 +25,23 @@ local SPELL_BLADE_OF_JUSTICE = 184575
 local SPELL_CRUSADER_STRIKE = 35395
 local SPELL_JUDGMENT = 20271
 local SPELL_TEMPLARS_VERDICT = 85256
+local SPELL_FINAL_VERDICT = 383328
 
 --- @class PaladinRetributionModule
 local module = {}
+
+--- Active single-target Holy Power spender for beginner combat guidance (not rotation math).
+--- Retail: Final Verdict (talent) replaces Templar's Verdict on the action bar when talented.
+--- @return number|nil spellID
+function module.GetRetributionSingleTargetSpenderSpellID()
+    if AM:IsSpellKnownSafe(SPELL_FINAL_VERDICT) then
+        return SPELL_FINAL_VERDICT
+    end
+    if AM:IsSpellKnownSafe(SPELL_TEMPLARS_VERDICT) then
+        return SPELL_TEMPLARS_VERDICT
+    end
+    return nil
+end
 
 --- @param playerState table snapshot from AM:GetPlayerState (without guidance/tutorial yet)
 --- @return string
@@ -85,14 +99,10 @@ function module.GetCombatRecommendation(state)
         }
     end
 
-    local spendId
-    if AM:IsSpellKnownSafe(SPELL_TEMPLARS_VERDICT) then
-        spendId = SPELL_TEMPLARS_VERDICT
-    end
     return {
         phase = PHASE_SPEND,
         displayLineKey = "RET_COMBAT_LINE_SPEND",
-        suggestedSpellID = spendId,
+        suggestedSpellID = module.GetRetributionSingleTargetSpenderSpellID(),
     }
 end
 

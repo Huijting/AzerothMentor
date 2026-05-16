@@ -11,6 +11,7 @@ AM.RetributionCombat = AM.RetributionCombat or {}
 local SPELL_CRUSADER_STRIKE = 35395
 local SPELL_JUDGMENT = 20271
 local SPELL_TEMPLARS_VERDICT = 85256
+local SPELL_FINAL_VERDICT = 383328
 
 local function GetHolyPowerPowerType()
     if Enum and Enum.PowerType and Enum.PowerType.HolyPower ~= nil then
@@ -37,16 +38,21 @@ function AM.RetributionCombat:GetState()
         crusaderStrikeKnown = AM:IsSpellKnownSafe(SPELL_CRUSADER_STRIKE),
         judgmentKnown = AM:IsSpellKnownSafe(SPELL_JUDGMENT),
         templarsVerdictKnown = AM:IsSpellKnownSafe(SPELL_TEMPLARS_VERDICT),
+        finalVerdictKnown = AM:IsSpellKnownSafe(SPELL_FINAL_VERDICT),
         inCombat = UnitAffectingCombat("player") and true or false,
     }
 end
 
 function AM.RetributionCombat:PrintStateToChat()
     local s = self:GetState()
+    local sm = AM.SpecModules and AM.SpecModules.PALADIN and AM.SpecModules.PALADIN.RETRIBUTION
+    local spenderId = sm and sm.GetRetributionSingleTargetSpenderSpellID and sm.GetRetributionSingleTargetSpenderSpellID()
     print("|cffaaaaff[Azeroth Mentor]|r Retribution combat state:")
     print(string.format("  Holy Power: %d / %d", s.holyPowerCurrent, s.holyPowerMax))
     print("  Crusader Strike known: " .. YesNo(s.crusaderStrikeKnown))
     print("  Judgment known: " .. YesNo(s.judgmentKnown))
     print("  Templar's Verdict known: " .. YesNo(s.templarsVerdictKnown))
+    print("  Final Verdict known: " .. YesNo(s.finalVerdictKnown))
+    print("  Mentor spender spellID: " .. tostring(spenderId or "nil"))
     print("  In combat: " .. YesNo(s.inCombat))
 end
