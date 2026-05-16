@@ -254,6 +254,9 @@ function AM:GetCurrentLevelMilestoneCard()
         actionText = actionText,
         onAccept = function()
             AM:MarkLevelMilestoneSeen(mk)
+            if type(AM.SuppressNextLessonToastCheck) == "function" then
+                AM:SuppressNextLessonToastCheck(true)
+            end
             if type(AM.AddLessonLogEntry) == "function" then
                 AM:AddLessonLogEntry({
                     type = "LEVEL_MILESTONE",

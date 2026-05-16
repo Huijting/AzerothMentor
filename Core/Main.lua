@@ -13,6 +13,7 @@ AM.name = "AzerothMentor"
 -- Optional dev toggles (see `/am debug milestones`, `/am debug cards`, `/am debug lessonlog`).
 AM.DEBUG_CARD_SELECTION = AM.DEBUG_CARD_SELECTION or false
 AM.DEBUG_LESSON_LOG = AM.DEBUG_LESSON_LOG or false
+AM.DEBUG_LESSON_TOAST = AM.DEBUG_LESSON_TOAST or false
 
 --------------------------------------------------------------------------------
 -- Defaults (uiScale is in-memory until a future save pipeline persists AM.db)

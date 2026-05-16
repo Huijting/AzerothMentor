@@ -624,6 +624,12 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "debug toast" then
+        AM.DEBUG_LESSON_TOAST = not AM.DEBUG_LESSON_TOAST
+        print(string.format("[Azeroth Mentor] DEBUG_LESSON_TOAST = %s", tostring(AM.DEBUG_LESSON_TOAST)))
+        return
+    end
+
     if lower == "log clear" then
         if type(AM.ClearLessonLog) == "function" then
             AM:ClearLessonLog()

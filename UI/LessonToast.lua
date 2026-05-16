@@ -9,70 +9,190 @@ local L = AM.L
 AM._lessonToastAcknowledgedKeys = AM._lessonToastAcknowledgedKeys or {}
 AM._lessonToastPending = AM._lessonToastPending or false
 AM._lessonToastActiveKey = AM._lessonToastActiveKey or nil
+AM._suppressNextLessonToastCheck = AM._suppressNextLessonToastCheck or false
 
+local function ToastDebug(msg)
+    if AM.DEBUG_LESSON_TOAST then
+        print("|cffaaaaff[Azeroth Mentor][Toast]|r " .. tostring(msg))
+    end
+end
+
+--- Stable toast key string (milestone:/spell:/unknown:).
+--- @param key string|nil
+--- @return string|nil
+function AM:NormalizeLessonToastKey(key)
+    if key == nil then
+        return nil
+    end
+    key = tostring(key)
+    if key == "" then
+        return nil
+    end
+    return key
+end
+
+--- Never replace the SavedVariables root table; only ensure subtables exist.
 --- @return table AzerothMentorDB.lessonToastAcknowledgedKeys
 function AM:EnsureLessonToastAckDB()
-    if type(_G.AzerothMentorDB) ~= "table" then
-        _G.AzerothMentorDB = {}
+    if AzerothMentorDB == nil then
+        AzerothMentorDB = {}
     end
+    _G.AzerothMentorDB = AzerothMentorDB
+
     if type(AzerothMentorDB.lessonToastAcknowledgedKeys) ~= "table" then
         AzerothMentorDB.lessonToastAcknowledgedKeys = {}
     end
+
     self._lessonToastAcknowledgedKeys = self._lessonToastAcknowledgedKeys or {}
     return AzerothMentorDB.lessonToastAcknowledgedKeys
 end
 
+--- Copy persisted acknowledgements into the session cache (after /reload).
+function AM:SyncLessonToastAckFromDB()
+    local db = self:EnsureLessonToastAckDB()
+    local n = 0
+    for k, v in pairs(db) do
+        if v then
+            self._lessonToastAcknowledgedKeys[k] = true
+            n = n + 1
+        end
+    end
+    ToastDebug(string.format("SyncLessonToastAckFromDB: %d key(s) loaded from SavedVariables", n))
+end
+
 function AM:AcknowledgeLessonToast(key)
-    if not key or key == "" then
+    key = self:NormalizeLessonToastKey(key)
+    if not key then
         return
     end
     local db = self:EnsureLessonToastAckDB()
     self._lessonToastAcknowledgedKeys[key] = true
     db[key] = true
+    ToastDebug(
+        string.format(
+            "AcknowledgeLessonToast key=%s session=%s db=%s",
+            key,
+            tostring(self._lessonToastAcknowledgedKeys[key]),
+            tostring(db[key])
+        )
+    )
 end
 
 function AM:IsLessonToastAcknowledged(key)
-    if not key or key == "" then
+    key = self:NormalizeLessonToastKey(key)
+    if not key then
         return false
     end
     local db = self:EnsureLessonToastAckDB()
-    if self._lessonToastAcknowledgedKeys[key] or db[key] then
-        return true
-    end
-    return false
+    local sessionAck = self._lessonToastAcknowledgedKeys[key] and true or false
+    local dbAck = db[key] and true or false
+    return sessionAck or dbAck
 end
 
 function AM:ResetLessonToastAcknowledgements()
     self:EnsureLessonToastAckDB()
     wipe(self._lessonToastAcknowledgedKeys)
     wipe(AzerothMentorDB.lessonToastAcknowledgedKeys)
+    self._suppressNextLessonToastCheck = false
+    AzerothMentorDB.suppressNextLessonToastOnLoad = nil
+    ToastDebug("ResetLessonToastAcknowledgements: session + DB cleared")
+end
+
+--- After LEVEL_MILESTONE Got it, skip one toast check so fallback spell cards do not toast immediately.
+--- @param persistForReload boolean|nil when true, survives /reload (one consume on next check)
+function AM:SuppressNextLessonToastCheck(persistForReload)
+    self._suppressNextLessonToastCheck = true
+    if persistForReload then
+        self:EnsureLessonToastAckDB()
+        AzerothMentorDB.suppressNextLessonToastOnLoad = true
+    end
+    ToastDebug(
+        "SuppressNextLessonToastCheck set"
+            .. (persistForReload and " (persist for reload)" or " (session only)")
+    )
+end
+
+--- @return boolean true if a suppress flag was consumed (caller should skip showing toast)
+function AM:ConsumeLessonToastSuppress()
+    if self._suppressNextLessonToastCheck then
+        self._suppressNextLessonToastCheck = false
+        ToastDebug("ConsumeLessonToastSuppress: session flag consumed")
+        return true
+    end
+    self:EnsureLessonToastAckDB()
+    if AzerothMentorDB.suppressNextLessonToastOnLoad then
+        AzerothMentorDB.suppressNextLessonToastOnLoad = nil
+        ToastDebug("ConsumeLessonToastSuppress: reload flag consumed")
+        return true
+    end
+    return false
 end
 
 function AM:PrintLessonToastStatus()
+    self:EnsureLessonToastAckDB()
+    local db = AzerothMentorDB.lessonToastAcknowledgedKeys
+
     local active = self._lessonToastActiveKey or "(none)"
-    local cardKey
+    local cardKey = "(none)"
+    local cardSource = "(none)"
+    local toastEligible = false
     if type(self.GetSpellCardDisplayInfo) == "function" and type(self.BuildLessonToastKey) == "function" then
         local ok, card = pcall(self.GetSpellCardDisplayInfo, self, { skipLessonLog = true })
-        if ok then
+        if ok and card then
+            cardSource = tostring(card.cardSource or card.type or "?")
+            toastEligible = self:IsLessonToastEligibleCard(card)
             cardKey = self:BuildLessonToastKey(card) or "(none)"
-        else
+        elseif not ok then
             cardKey = "(error)"
         end
-    else
-        cardKey = "(n/a)"
     end
-    local checkKey = self._lessonToastActiveKey or (cardKey ~= "(none)" and cardKey ~= "(error)" and cardKey ~= "(n/a)" and cardKey)
-    local ackStr = "n/a"
-    if checkKey then
-        ackStr = tostring(self:IsLessonToastAcknowledged(checkKey))
+
+    local checkKey = self._lessonToastActiveKey
+    if not checkKey or checkKey == "" then
+        checkKey = (cardKey ~= "(none)" and cardKey ~= "(error)") and cardKey or nil
+    end
+
+    print("[Azeroth Mentor] Lesson toast status:")
+    print("  active toast key: " .. tostring(active))
+    print("  current card source: " .. tostring(cardSource))
+    print("  current card toast eligible: " .. tostring(toastEligible))
+    print("  current card key: " .. tostring(cardKey))
+    local explainId = self._mentorExplainSpellID
+    local explainUntil = self._mentorExplainUntil
+    local spotlightActive = false
+    if explainId and explainUntil and type(self.IsActiveMentorExplainSpotlight) == "function" then
+        spotlightActive = self:IsActiveMentorExplainSpotlight(explainId)
     end
     print(
         string.format(
-            "[Azeroth Mentor] toast active=%s cardKey=%s acknowledged=%s",
-            tostring(active),
-            tostring(cardKey),
-            ackStr
+            "  explain spotlight: spellID=%s active=%s until=%s",
+            tostring(explainId or "nil"),
+            tostring(spotlightActive),
+            tostring(explainUntil or "nil")
         )
+    )
+    if checkKey then
+        local sessionAck = self._lessonToastAcknowledgedKeys[checkKey] and true or false
+        local dbAck = db[checkKey] and true or false
+        print("  check key: " .. tostring(checkKey))
+        print("  session acknowledged: " .. tostring(sessionAck))
+        print("  DB acknowledged: " .. tostring(dbAck))
+        print("  IsLessonToastAcknowledged: " .. tostring(self:IsLessonToastAcknowledged(checkKey)))
+    else
+        print("  check key: (none)")
+    end
+
+    local dbCount = 0
+    for k, v in pairs(db) do
+        if v then
+            dbCount = dbCount + 1
+        end
+    end
+    print("  DB ack count: " .. tostring(dbCount))
+    print("  session suppress next check: " .. tostring(self._suppressNextLessonToastCheck and true or false))
+    print(
+        "  DB suppress on load: "
+            .. tostring(AzerothMentorDB.suppressNextLessonToastOnLoad and true or false)
     )
 end
 
@@ -108,28 +228,36 @@ function AM:OpenMentorFromLessonToast()
     end
 end
 
---- @param cardInfo table|nil from GetSpellCardDisplayInfo
+--- @param cardInfo table|nil from GetSpellCardDisplayInfo (uses cardSource / toastEligible from Spells.lua)
 --- @return string|nil toast dedupe key
 function AM:BuildLessonToastKey(cardInfo)
-    if not cardInfo or cardInfo.isRetCombatMentorFocus then
+    if not cardInfo or cardInfo.isRetCombatMentorFocus or not cardInfo.toastEligible then
         return nil
     end
-    if cardInfo.type == "LEVEL_MILESTONE" and cardInfo.milestoneKey then
-        return "milestone:" .. tostring(cardInfo.milestoneKey)
+    local source = cardInfo.cardSource
+    if source == "level_milestone" and cardInfo.type == "LEVEL_MILESTONE" and cardInfo.milestoneKey then
+        return self:NormalizeLessonToastKey("milestone:" .. tostring(cardInfo.milestoneKey))
     end
-    if cardInfo.isUnknownUntracked and cardInfo.spellID then
-        return "unknown:" .. tostring(cardInfo.spellID)
+    if source == "unknown_untracked" and cardInfo.isUnknownUntracked and cardInfo.spellID then
+        return self:NormalizeLessonToastKey("unknown:" .. tostring(cardInfo.spellID))
     end
-    local now = GetTime()
-    local explainId = self._mentorExplainSpellID
-    if explainId and self._mentorExplainUntil and now < self._mentorExplainUntil and cardInfo.spellID == explainId then
-        return "spell:" .. tostring(cardInfo.spellID)
-    end
-    local latest = self.latestLearnedSpellID
-    if latest and cardInfo.spellID == latest then
-        return "spell:" .. tostring(cardInfo.spellID)
+    if (source == "mentor_explain" or source == "latest_learned") and cardInfo.spellID then
+        if type(self.IsActiveMentorExplainSpotlight) == "function" and not self:IsActiveMentorExplainSpotlight(cardInfo.spellID) then
+            return nil
+        end
+        return self:NormalizeLessonToastKey("spell:" .. tostring(cardInfo.spellID))
     end
     return nil
+end
+
+function AM:IsLessonToastEligibleCard(cardInfo)
+    if not cardInfo or cardInfo.isRetCombatMentorFocus then
+        return false
+    end
+    if cardInfo.toastEligible == true then
+        return true
+    end
+    return self:BuildLessonToastKey(cardInfo) ~= nil
 end
 
 function AM:HideLessonToast()
@@ -143,11 +271,13 @@ end
 --- @param title string|nil
 --- @param subtitle string|nil
 function AM:ShowLessonToast(key, title, subtitle)
-    if not key or key == "" then
+    key = self:NormalizeLessonToastKey(key)
+    if not key then
         self:HideLessonToast()
         return
     end
     if self:IsLessonToastAcknowledged(key) then
+        ToastDebug("ShowLessonToast skipped (acknowledged): " .. key)
         return
     end
 
@@ -227,23 +357,12 @@ function AM:ShowLessonToast(key, title, subtitle)
 
     AM._lessonToastActiveKey = key
     toastFrame:Show()
+    ToastDebug("ShowLessonToast shown: " .. key)
 end
 
 --- @param cardInfo table|nil optional; if omitted, resolves via GetSpellCardDisplayInfo (no lesson log).
 function AM:MaybeShowLessonToastForCurrentCard(cardInfo)
-    if self:IsMainFrameShown() then
-        self:HideLessonToast()
-        self._lessonToastPending = false
-        return
-    end
-
-    if UnitAffectingCombat("player") then
-        self._lessonToastPending = true
-        self:HideLessonToast()
-        return
-    end
-
-    self._lessonToastPending = false
+    self:EnsureLessonToastAckDB()
 
     if not cardInfo and type(self.GetSpellCardDisplayInfo) == "function" then
         local ok, info = pcall(self.GetSpellCardDisplayInfo, self, { skipLessonLog = true })
@@ -252,16 +371,74 @@ function AM:MaybeShowLessonToastForCurrentCard(cardInfo)
         end
     end
 
+    if self:ConsumeLessonToastSuppress() then
+        self:HideLessonToast()
+        local wouldKey = self:BuildLessonToastKey(cardInfo)
+        ToastDebug(
+            "MaybeShowLessonToast skipped (post-milestone suppress)"
+                .. (wouldKey and ("; fallback key would be " .. wouldKey) or "")
+        )
+        return
+    end
+
+    if self:IsMainFrameShown() then
+        self:HideLessonToast()
+        self._lessonToastPending = false
+        ToastDebug("MaybeShowLessonToast skipped (main frame open)")
+        return
+    end
+
+    if UnitAffectingCombat("player") then
+        self._lessonToastPending = true
+        self:HideLessonToast()
+        ToastDebug("MaybeShowLessonToast deferred (combat)")
+        return
+    end
+
+    self._lessonToastPending = false
+
+    if not self:IsLessonToastEligibleCard(cardInfo) then
+        self:HideLessonToast()
+        ToastDebug(
+            string.format(
+                "MaybeShowLessonToast skipped (card not toast-eligible; source=%s)",
+                tostring(cardInfo and cardInfo.cardSource or "?")
+            )
+        )
+        return
+    end
+
     local key = self:BuildLessonToastKey(cardInfo)
     if not key then
         self:HideLessonToast()
+        ToastDebug("MaybeShowLessonToast skipped (no toast key for current card)")
         return
     end
+
+    local db = AzerothMentorDB.lessonToastAcknowledgedKeys
+    local sessionAck = self._lessonToastAcknowledgedKeys[key] and true or false
+    local dbAck = db[key] and true or false
 
     if self:IsLessonToastAcknowledged(key) then
+        ToastDebug(
+            string.format(
+                "MaybeShowLessonToast skipped key=%s sessionAck=%s dbAck=%s",
+                key,
+                tostring(sessionAck),
+                tostring(dbAck)
+            )
+        )
         return
     end
 
+    ToastDebug(
+        string.format(
+            "MaybeShowLessonToast showing key=%s sessionAck=%s dbAck=%s",
+            key,
+            tostring(sessionAck),
+            tostring(dbAck)
+        )
+    )
     self:ShowLessonToast(key, L["LESSON_TOAST_TITLE"], L["LESSON_TOAST_SUBTITLE"])
 end
 
@@ -270,8 +447,12 @@ toastEventFrame:RegisterEvent("ADDON_LOADED")
 toastEventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 toastEventFrame:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" then
-        if arg1 == AM.name and type(AM.EnsureLessonToastAckDB) == "function" then
-            AM:EnsureLessonToastAckDB()
+        if arg1 == AM.name then
+            if type(AM.SyncLessonToastAckFromDB) == "function" then
+                AM:SyncLessonToastAckFromDB()
+            elseif type(AM.EnsureLessonToastAckDB) == "function" then
+                AM:EnsureLessonToastAckDB()
+            end
         end
         return
     end

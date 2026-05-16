@@ -31,11 +31,51 @@ end
 -- Set true temporarily to trace spell card branch + GetCombatRecommendation vs final pick (chat can be noisy).
 local DEBUG_COMBAT_SPELL_CARD = false
 
+--- Lesson toast may only fire for these resolver branches (not default/first_known or combat mentor).
+local TOAST_ELIGIBLE_CARD_SOURCES = {
+    level_milestone = true,
+    mentor_explain = true,
+    unknown_untracked = true,
+    latest_learned = true,
+}
+
+local TRACKED_SPELL_BULK_NEW_THRESHOLD = 3
+
+--- Active new-spell spotlight window (mentor explain / latest learned), not a recurring default tip.
+--- @param spellID number|nil
+--- @return boolean
+function AM:IsActiveMentorExplainSpotlight(spellID)
+    if not spellID then
+        return false
+    end
+    local explainId = self._mentorExplainSpellID
+    local untilT = self._mentorExplainUntil
+    if not explainId or not untilT then
+        return false
+    end
+    return explainId == spellID and GetTime() < untilT
+end
+
+--- @param result table|nil
+--- @param branch string
+local function ApplyLessonToastEligibility(self, result, branch)
+    if not result then
+        return
+    end
+    result.cardSource = branch
+    local eligible = TOAST_ELIGIBLE_CARD_SOURCES[branch] and true or false
+    if branch == "mentor_explain" or branch == "latest_learned" then
+        eligible = eligible and self:IsActiveMentorExplainSpotlight(result.spellID)
+    end
+    result.toastEligible = eligible
+end
+
 --- Logs GetCombatRecommendation snapshot vs branch + spell card chosen.
 --- @param branch string which resolver path returned (mentor_explain, unknown_untracked, latest_learned, combat_mentor, level_milestone, first_known)
 --- @param opts table|nil optional `{ skipLessonLog = true }` for callers that must not persist mentor log entries (e.g. /am status).
 local function FinishSpellCardDisplay(self, result, branch, opts)
     branch = branch or "default"
+    ApplyLessonToastEligibility(self, result, branch)
     if DEBUG_COMBAT_SPELL_CARD then
         local phase = "n/a"
         local suggested = "nil"
@@ -677,6 +717,11 @@ function AM:DetectNewSpells()
     local newSnap = self:BuildKnownSpellSnapshot()
 
     if not self._knownSpellSnapshotReady then
+        if next(newSnap) == nil then
+            DebugSpellDetect("DetectNewSpells: defer snapshot seed (spellbook not ready yet).")
+            self:DetectUntrackedSpellbookNewSpells()
+            return {}
+        end
         wipe(self.knownSpellSnapshot)
         for sid in pairs(newSnap) do
             self.knownSpellSnapshot[sid] = true
@@ -709,6 +754,15 @@ function AM:DetectNewSpells()
     wipe(self.knownSpellSnapshot)
     for sid in pairs(newSnap) do
         self.knownSpellSnapshot[sid] = true
+    end
+
+    if #newIds >= TRACKED_SPELL_BULK_NEW_THRESHOLD then
+        DebugSpellDetect(
+            "DetectNewSpells: bulk new tracked spells (" .. #newIds .. "); reseed without spotlight."
+        )
+        self.pendingNewSpellIds = nil
+        self:DetectUntrackedSpellbookNewSpells()
+        return {}
     end
 
     if #newIds >= 1 then

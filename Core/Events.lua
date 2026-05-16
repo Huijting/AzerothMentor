@@ -30,7 +30,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
         if type(AM.EnsureLessonLogDB) == "function" then
             AM:EnsureLessonLogDB()
         end
-        if type(AM.EnsureLessonToastAckDB) == "function" then
+        if type(AM.SyncLessonToastAckFromDB) == "function" then
+            AM:SyncLessonToastAckFromDB()
+        elseif type(AM.EnsureLessonToastAckDB) == "function" then
             AM:EnsureLessonToastAckDB()
         end
     elseif event == "UNIT_POWER_FREQUENT" then
@@ -61,5 +63,8 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
         return
     end
 
+    if type(AM.SyncLessonToastAckFromDB) == "function" then
+        AM:SyncLessonToastAckFromDB()
+    end
     AM:UpdateMainFrame()
 end)
