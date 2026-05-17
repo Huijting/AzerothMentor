@@ -18,4 +18,5 @@ UI/MainFrame.lua
 UI/LessonToast.lua
 UI/MinimapButton.lua
 UI/XPBar.lua
+UI/CombatHint.lua
 Core/Events.lua

@@ -802,6 +802,78 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         end
     end
 
+    if lower == "combathint show" then
+        if type(AM.CombatHintShow) == "function" then
+            AM:CombatHintShow()
+        end
+        return
+    end
+
+    if lower == "combathint hide" then
+        if type(AM.CombatHintHide) == "function" then
+            AM:CombatHintHide()
+        end
+        return
+    end
+
+    if lower == "combathint lock" then
+        if type(AM.CombatHintSetLocked) == "function" then
+            AM:CombatHintSetLocked(true)
+        end
+        return
+    end
+
+    if lower == "combathint unlock" then
+        if type(AM.CombatHintSetLocked) == "function" then
+            AM:CombatHintSetLocked(false)
+        end
+        return
+    end
+
+    if lower == "combathint reset" then
+        if type(AM.CombatHintReset) == "function" then
+            AM:CombatHintReset()
+        end
+        return
+    end
+
+    if lower == "combathint scale" then
+        print("[Azeroth Mentor] Usage: /am combathint scale <number>  (allowed: 0.5 to 2.5, e.g. 1.2)")
+        return
+    end
+
+    do
+        local chScaleArg = string.match(lower, "^combathint scale%s+(.+)$")
+        if chScaleArg then
+            if type(AM.CombatHintSetScale) == "function" then
+                AM:CombatHintSetScale(tonumber(strtrim(chScaleArg)))
+            end
+            return
+        end
+    end
+
+    if lower == "combathint keybinds on" then
+        if type(AM.CombatHintSetShowKeybinds) == "function" then
+            AM:CombatHintSetShowKeybinds(true)
+        end
+        return
+    end
+
+    if lower == "combathint keybinds off" then
+        if type(AM.CombatHintSetShowKeybinds) == "function" then
+            AM:CombatHintSetShowKeybinds(false)
+        end
+        return
+    end
+
+    if lower == "combathint keybinds" then
+        if type(AM.CombatHintSetShowKeybinds) == "function" and type(AM.EnsureCombatHintDB) == "function" then
+            local db = AM:EnsureCombatHintDB()
+            AM:CombatHintSetShowKeybinds(not db.showKeybinds)
+        end
+        return
+    end
+
     AM:ToggleMainFrame()
 end
 
