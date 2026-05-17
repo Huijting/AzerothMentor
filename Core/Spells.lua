@@ -483,6 +483,496 @@ function AM:IsSpellKnownSafe(spellID)
     return false
 end
 
+-- Retail combat can return secret cooldown numbers: type() may be "number" but >/< still errors.
+-- Never compare or format cooldown values outside pcall; fail open when unreadable.
+local SPELL_CD_MIN_DURATION = 1.5
+local SPELL_CD_REMAINING_THRESHOLD = 0.1
+local SPELL_CD_CACHE_TTL = 2.0
+local SPELL_CD_TRACKED_IDS = { 184575, 20271, 35395, 383328, 85256 }
+
+-- Shown by /am cooldowns to confirm the loaded cooldown logic revision.
+AM.COOLDOWN_LOGIC_VERSION = "plain-v7"
+
+AM._spellCooldownReadyCache = AM._spellCooldownReadyCache or {}
+
+--- @param val any
+--- @return boolean|nil true/false when plain boolean; nil when secret or non-boolean
+local function SafeBoolField(val)
+    if val == true then
+        return true
+    end
+    if val == false then
+        return false
+    end
+    return nil
+end
+
+--- Convert secret/protected cooldown numbers into plain Lua numbers (never compare raw API values).
+--- @param value any
+--- @return number|nil
+local function SafePlainNumber(value)
+    if value == nil then
+        return nil
+    end
+    local ok, text = pcall(function()
+        return string.format("%.3f", value)
+    end)
+    if ok and type(text) == "string" then
+        local n = tonumber(text)
+        if type(n) == "number" then
+            return n
+        end
+    end
+    local ok2, n2 = pcall(function()
+        return tonumber(value)
+    end)
+    if ok2 and type(n2) == "number" then
+        return n2
+    end
+    return nil
+end
+
+--- @param a any plain Lua number
+--- @param b any plain Lua number
+--- @return boolean|nil true / false, or nil if compare failed
+local function SafeGreater(a, b)
+    if a == nil or b == nil then
+        return nil
+    end
+    local ok, result = pcall(function()
+        return a > b
+    end)
+    if ok and type(result) == "boolean" then
+        return result
+    end
+    return nil
+end
+
+--- @param val any
+--- @return string
+local function SafeFormatNumber(val)
+    if val == nil then
+        return "nil"
+    end
+    local ok, text = pcall(function()
+        return string.format("%.2f", val)
+    end)
+    if ok and type(text) == "string" then
+        return text
+    end
+    local ok2, text2 = pcall(function()
+        return tostring(val)
+    end)
+    if ok2 and type(text2) == "string" then
+        return text2
+    end
+    return "unreadable"
+end
+
+--- Read raw cooldown fields from game APIs (no comparisons here).
+--- @param spellID number
+--- @param detail table
+--- @return any startRaw
+--- @return any durationRaw
+local function ReadCooldownRaw(spellID, detail)
+    local startRaw = nil
+    local durationRaw = nil
+
+    if C_Spell and type(C_Spell.GetSpellCooldown) == "function" then
+        local cdOk, cdPack = pcall(function()
+            local r1, r2, r3 = C_Spell.GetSpellCooldown(spellID)
+            return { r1, r2, r3 }
+        end)
+        if cdOk and type(cdPack) == "table" and cdPack[1] ~= nil then
+            detail.apiPath = "C_Spell.GetSpellCooldown"
+            local first = cdPack[1]
+            if type(first) == "table" then
+                detail.apiPath = "C_Spell.GetSpellCooldown(table)"
+                if first.isOnGCD == true then
+                    detail.isOnGCD = true
+                elseif first.isOnGCD == false then
+                    detail.isOnGCD = false
+                end
+                durationRaw = first.duration
+                startRaw = first.startTime or first.start
+                if durationRaw == nil and cdPack[2] ~= nil then
+                    durationRaw = cdPack[2]
+                end
+            else
+                detail.apiPath = "C_Spell.GetSpellCooldown(returns)"
+                startRaw = first
+                durationRaw = cdPack[2]
+            end
+        end
+    end
+
+    if durationRaw == nil and type(GetSpellCooldown) == "function" then
+        local legOk, a, b = pcall(GetSpellCooldown, spellID)
+        if legOk then
+            detail.apiPath = "GetSpellCooldown"
+            startRaw = a
+            durationRaw = b
+        end
+    end
+
+    return startRaw, durationRaw
+end
+
+--- @param spellID number|nil clears one entry; omit to clear all tracked entries.
+function AM:ClearSpellCooldownCache(spellID)
+    if not self._spellCooldownReadyCache then
+        return
+    end
+    if spellID == nil then
+        self._spellCooldownReadyCache = {}
+        return
+    end
+    self._spellCooldownReadyCache[spellID] = nil
+end
+
+--- @param spellID number
+--- @return boolean|nil usable; nil = unknown (fail open)
+--- @return string apiPath
+local function EvaluateSpellUsable(spellID)
+    if C_Spell and type(C_Spell.IsSpellUsable) == "function" then
+        local ok, usable = pcall(function()
+            local u = C_Spell.IsSpellUsable(spellID)
+            if type(u) == "boolean" then
+                return u
+            end
+            if type(u) == "table" then
+                return SafeBoolField(u.isUsable)
+            end
+            return nil
+        end)
+        if ok and type(usable) == "boolean" then
+            return usable, "C_Spell.IsSpellUsable"
+        end
+    end
+    if type(IsUsableSpell) == "function" then
+        local ok, usable = pcall(IsUsableSpell, spellID)
+        if ok and type(usable) == "boolean" then
+            return usable, "IsUsableSpell"
+        end
+    end
+    return nil, "none"
+end
+
+--- Single-path cooldown evaluation for mentor hints (duration-only; no GCD/remaining branches).
+--- @param spellID number
+--- @param opts table|nil reserved (skipCache ignored; one evaluation only)
+--- @return boolean ready
+--- @return boolean conclusive
+--- @return table detail
+function AM:EvaluateSpellCooldownReady(spellID, opts)
+    local detail = {
+        apiPath = "none",
+        ready = true,
+        conclusive = false,
+        compareDurationNum = nil,
+        durationNum = nil,
+        durationDisplay = nil,
+        threshold = SPELL_CD_MIN_DURATION,
+        startDisplay = nil,
+        durationNormalized = false,
+        isOnGCD = nil,
+        branch = nil,
+        note = nil,
+    }
+
+    local ok = pcall(function()
+        local startRaw, durationRaw = ReadCooldownRaw(spellID, detail)
+
+        if startRaw ~= nil then
+            local startNum = SafePlainNumber(startRaw)
+            if startNum ~= nil then
+                detail.startDisplay = string.format("%.2f", startNum)
+            else
+                detail.startDisplay = SafeFormatNumber(startRaw)
+            end
+        end
+
+        local durationNum = SafePlainNumber(durationRaw)
+        if durationNum ~= nil then
+            detail.compareDurationNum = durationNum
+            detail.durationNum = durationNum
+            detail.durationDisplay = string.format("%.2f", durationNum)
+            detail.durationNormalized = true
+
+            local durGtMin = SafeGreater(durationNum, SPELL_CD_MIN_DURATION)
+            if durGtMin == true then
+                detail.ready = false
+                detail.conclusive = true
+                detail.branch = "durationNum>threshold"
+                detail.note = "duration indicates cooldown"
+            elseif durGtMin == false then
+                detail.ready = true
+                detail.conclusive = true
+                detail.branch = "durationNum<=threshold"
+                detail.note = "duration<=1.5 (gcd/ready)"
+            else
+                detail.ready = true
+                detail.conclusive = false
+                detail.branch = "durationCompareFailOpen"
+                detail.note = "cooldown comparison failed, fail open"
+            end
+        else
+            detail.ready = true
+            detail.conclusive = false
+            detail.branch = "noDurationNumFailOpen"
+            detail.note = "cooldown unreadable, fail open"
+            detail.durationNormalized = false
+        end
+
+        if AM.DEBUG_COOLDOWNS then
+            local assertOk, inconsistent = pcall(function()
+                return detail.compareDurationNum ~= nil
+                    and detail.compareDurationNum > SPELL_CD_MIN_DURATION
+                    and detail.ready == true
+            end)
+            if assertOk and inconsistent then
+                print(
+                    "[Azeroth Mentor] COOLDOWN BUG: duration > threshold but ready=true",
+                    spellID,
+                    "branch=",
+                    tostring(detail.branch)
+                )
+            end
+        end
+    end)
+
+    if not ok then
+        detail.ready = true
+        detail.conclusive = false
+        detail.branch = "evalErrorFailOpen"
+        detail.note = "cooldown evaluation error, fail open"
+    end
+
+    return detail.ready, detail.conclusive, detail
+end
+
+--- True when the spell is known and not obviously on cooldown / unusable (beginner-facing; not rotation math).
+--- Uses the same single-path EvaluateSpellCooldownReady result as /am cooldowns.
+--- @param spellID number|nil
+--- @param opts table|nil optional `{ skipCache = true }` (cache no longer used; kept for API compat)
+--- @return boolean
+function AM:IsSpellReady(spellID, opts)
+    if spellID == nil then
+        return false
+    end
+
+    local ok, ready = pcall(function()
+        if not self:IsSpellKnownSafe(spellID) then
+            return false
+        end
+
+        local cdReady, conclusive = self:EvaluateSpellCooldownReady(spellID, opts)
+        if conclusive == true then
+            if cdReady == false then
+                return false
+            end
+            local usable, _ = EvaluateSpellUsable(spellID)
+            if usable == false then
+                return false
+            end
+            return true
+        end
+
+        local usable, _ = EvaluateSpellUsable(spellID)
+        if usable == false then
+            return false
+        end
+        return true
+    end)
+
+    if not ok then
+        return true
+    end
+    return ready == true
+end
+
+local COOLDOWN_REPORT_SPELLS = {
+    { 184575, "BoJ", "Blade of Justice" },
+    { 20271, "Judgment", "Judgment" },
+    { 35395, "CS", "Crusader Strike" },
+    { 383328, "FV", "Final Verdict" },
+    { 85256, "TV", "Templar's Verdict" },
+}
+
+--- @param spellID number
+--- @param shortLabel string
+--- @param verbose boolean
+--- @return string|nil
+function AM:FormatCooldownSpellLine(spellID, shortLabel, verbose)
+    local lineOk, line = pcall(function()
+        local name = self:GetSpellDisplayInfo(spellID)
+        local known = self:IsSpellKnownSafe(spellID)
+        local cdReady, conclusive, detail = self:EvaluateSpellCooldownReady(spellID, { skipCache = true })
+        local isReady = cdReady == true
+        if conclusive ~= true then
+            isReady = true
+        elseif cdReady == false then
+            isReady = false
+        else
+            local usable, _ = EvaluateSpellUsable(spellID)
+            if usable == false then
+                isReady = false
+            end
+        end
+        local usable, usePath = EvaluateSpellUsable(spellID)
+
+        if not verbose then
+            local durNorm = detail.durationNormalized == true and "true" or "false"
+            local function fmtPlainNum(val)
+                if val == nil then
+                    return "nil"
+                end
+                local numOk, numText = pcall(function()
+                    return string.format("%.2f", val)
+                end)
+                return numOk and numText or "unreadable"
+            end
+            local thresholdText = fmtPlainNum(detail.threshold or SPELL_CD_MIN_DURATION)
+            return string.format(
+                "  %-3s %-22s (%d)  ready=%-5s known=%-5s usable=%-5s  compareDurationNum=%s durationNum=%s durationDisplay=%s threshold=%s norm=%-5s rem=%-11s gcd=%-5s  branch=%s  note=%s",
+                shortLabel,
+                name,
+                spellID,
+                tostring(isReady),
+                tostring(known),
+                usable == nil and "unreadable" or tostring(usable),
+                fmtPlainNum(detail.compareDurationNum),
+                fmtPlainNum(detail.durationNum),
+                tostring(detail.durationDisplay or "nil"),
+                thresholdText,
+                durNorm,
+                tostring(detail.remainingDisplay or "unreadable"),
+                tostring(detail.isOnGCD),
+                tostring(detail.branch or "-"),
+                tostring(detail.note or "-")
+            )
+        end
+
+        local cache = self._spellCooldownReadyCache and self._spellCooldownReadyCache[spellID]
+        local cacheNote = "no cache"
+        if cache then
+            local ageOk, ageText = pcall(function()
+                return string.format("%.2f", GetTime() - (cache.at or 0))
+            end)
+            cacheNote = string.format(
+                "cache ready=%s conclusive=%s age=%ss note=%s",
+                tostring(cache.ready),
+                tostring(cache.conclusive),
+                ageOk and ageText or "?",
+                tostring(cache.detail and cache.detail.note)
+            )
+        end
+        return string.format(
+            "[AM cooldown] %d %s (%s) | known=%s | usable=%s path=%s | start=%s dur=%s norm=%s rem=%s | gcd=%s enabled=%s | api=%s note=%s | evalReady=%s conclusive=%s | %s | IsSpellReady=%s",
+            spellID,
+            shortLabel,
+            tostring(name),
+            tostring(known),
+            tostring(usable),
+            tostring(usePath),
+            tostring(detail.startDisplay or "unreadable"),
+            tostring(detail.durationDisplay or "unreadable"),
+            detail.durationNormalized == true and "true" or "false",
+            tostring(detail.remainingDisplay or "unreadable"),
+            tostring(detail.isOnGCD),
+            tostring(detail.isEnabled),
+            tostring(detail.apiPath),
+            tostring(detail.note),
+            tostring(cdReady),
+            tostring(conclusive),
+            cacheNote,
+            tostring(isReady)
+        )
+    end)
+    if lineOk and line then
+        return line
+    end
+    return string.format("  %-3s (%d)  print failed (secret/taint)", tostring(shortLabel), spellID)
+end
+
+--- One-shot mentor + cooldown snapshot for `/am cooldowns`.
+function AM:PrintCooldownStatusReport()
+    local ok = pcall(function()
+        if type(self.ClearSpellCooldownCache) == "function" then
+            self:ClearSpellCooldownCache()
+        end
+
+        print("[Azeroth Mentor] === Cooldown status ===")
+        print("  cooldown logic: " .. tostring(self.COOLDOWN_LOGIC_VERSION or "unknown"))
+
+        local combat = self.RetributionCombat and self.RetributionCombat.GetState and self.RetributionCombat:GetState()
+        local hpText = "unreadable"
+        if combat and combat.holyPowerCurrent ~= nil then
+            local hpOk, hpVal = pcall(function()
+                return tonumber(combat.holyPowerCurrent) or combat.holyPowerCurrent
+            end)
+            if hpOk and hpVal ~= nil then
+                hpText = tostring(hpVal) .. "/5"
+            end
+        end
+        print("  Holy Power: " .. hpText)
+
+        local phase = "n/a"
+        local suggestedID = nil
+        local suggestedName = "none"
+        local suggestedReadyText = "n/a"
+        local sm = self.SpecModules and self.SpecModules.PALADIN and self.SpecModules.PALADIN.RETRIBUTION
+        if sm and sm.GetCombatRecommendation then
+            local rec = sm.GetCombatRecommendation({ combat = combat })
+            if rec then
+                phase = tostring(rec.phase or "n/a")
+                suggestedID = rec.suggestedSpellID
+                if suggestedID then
+                    suggestedName = self:GetSpellDisplayInfo(suggestedID)
+                    suggestedReadyText = tostring(self:IsSpellReady(suggestedID, { skipCache = true }))
+                else
+                    suggestedReadyText = "n/a (wait)"
+                end
+            end
+        end
+        print("  Phase: " .. phase)
+        if suggestedID then
+            print(string.format(
+                "  Mentor suggests: %s (%d) — ready=%s",
+                tostring(suggestedName),
+                suggestedID,
+                suggestedReadyText
+            ))
+        else
+            print("  Mentor suggests: none — ready=" .. suggestedReadyText)
+        end
+
+        print("  Spells:")
+        for _, row in ipairs(COOLDOWN_REPORT_SPELLS) do
+            print(self:FormatCooldownSpellLine(row[1], row[2], false))
+        end
+
+        print("[Azeroth Mentor] === end (one-shot; run /am cooldowns again anytime) ===")
+    end)
+    if not ok then
+        print("[Azeroth Mentor] Cooldown status report failed (secret/taint). Try again after /reload.")
+    end
+end
+
+--- Verbose report for developers when DEBUG_COOLDOWNS is enabled (optional).
+function AM:PrintCooldownDebugReport()
+    local ok = pcall(function()
+        print("[Azeroth Mentor] --- cooldown debug (verbose) ---")
+        for _, row in ipairs(COOLDOWN_REPORT_SPELLS) do
+            print(self:FormatCooldownSpellLine(row[1], row[2], true))
+        end
+        print("[Azeroth Mentor] --- end cooldown debug ---")
+    end)
+    if not ok then
+        print("[Azeroth Mentor] Cooldown debug report failed (secret/taint).")
+    end
+end
+
 --------------------------------------------------------------------------------
 -- Spell name + icon for UI (modern C_Spell first, then legacy GetSpellInfo)
 --------------------------------------------------------------------------------
@@ -827,19 +1317,18 @@ function AM:GetRetributionMentorCombatSpellCard()
     end
 
     if rec.phase == "BUILD" then
-        -- Never gate BUILD on rec.suggestedSpellID alone: display can be BUILD while suggested was nil,
-        -- which previously skipped this path and let GetFirstKnownClassSpell pick a spender (e.g. TV).
-        local order = (sm.GetBuildMentorSpellOrder and sm.GetBuildMentorSpellOrder()) or { 184575, 35395, 20271 }
-        for _, sid in ipairs(order) do
-            for _, row in ipairs(db) do
-                if row and row.spellID == sid then
-                    local info = BuildSpellDisplayInfo(self, row)
-                    if info then
-                        info.isRetCombatMentorFocus = true
-                        return info
-                    end
-                    break
+        local sid = rec.suggestedSpellID
+        if not sid then
+            return nil
+        end
+        for _, row in ipairs(db) do
+            if row and row.spellID == sid then
+                local info = BuildSpellDisplayInfo(self, row)
+                if info then
+                    info.isRetCombatMentorFocus = true
+                    return info
                 end
+                break
             end
         end
         return nil

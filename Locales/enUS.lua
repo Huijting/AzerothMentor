@@ -42,7 +42,9 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Start with Judgment or Blade of Justice, then move in and use Crusader Strike."
     L.RET_COMBAT_LINE_BUILD =
         "Build Holy Power with Judgment, Blade of Justice, or Crusader Strike."
+    L.RET_COMBAT_LINE_BUILD_WAIT = "Wait briefly for a builder to become ready."
     L.RET_COMBAT_LINE_SPEND = "Spend Holy Power with your single-target spender."
+    L.RET_COMBAT_LINE_SPEND_WAIT = "Wait briefly for your spender to become ready."
     L.LABEL_CHARACTER = "Character"
     L.LABEL_CLASS = "Class"
     L.LABEL_SPEC = "Spec"

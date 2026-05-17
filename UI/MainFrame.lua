@@ -630,6 +630,24 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "cooldowns" then
+        if type(AM.PrintCooldownStatusReport) == "function" then
+            AM:PrintCooldownStatusReport()
+        end
+        return
+    end
+
+    if lower == "debug cooldowns" then
+        AM.DEBUG_COOLDOWNS = not AM.DEBUG_COOLDOWNS
+        print(string.format("[Azeroth Mentor] DEBUG_COOLDOWNS = %s (verbose debug mode)", tostring(AM.DEBUG_COOLDOWNS)))
+        print("  /am cooldowns          — one-shot status report (use while testing)")
+        print("  /am debug cooldowns    — toggles verbose debug flag (no auto-print)")
+        if AM.DEBUG_COOLDOWNS and type(AM.PrintCooldownDebugReport) == "function" then
+            print("  Tip: run /am cooldowns for a snapshot, or call verbose report manually if needed.")
+        end
+        return
+    end
+
     if lower == "log clear" then
         if type(AM.ClearLessonLog) == "function" then
             AM:ClearLessonLog()

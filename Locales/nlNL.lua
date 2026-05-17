@@ -40,7 +40,9 @@ if GetLocale() == "nlNL" then
         "Begin met Judgment of Blade of Justice, loop er dan naartoe en gebruik Crusader Strike."
     L.RET_COMBAT_LINE_BUILD =
         "Bouw Holy Power op met Judgment, Blade of Justice of Crusader Strike."
+    L.RET_COMBAT_LINE_BUILD_WAIT = "Wacht kort tot een builder weer klaar is."
     L.RET_COMBAT_LINE_SPEND = "Geef Holy Power uit met je single-target spender."
+    L.RET_COMBAT_LINE_SPEND_WAIT = "Wacht kort tot je spender weer klaar is."
     L.LABEL_CHARACTER = "Personage"
     L.LABEL_CLASS = "Klasse"
     L.LABEL_SPEC = "Specialisatie"
