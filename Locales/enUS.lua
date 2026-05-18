@@ -105,6 +105,8 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Lay on Hands is a powerful emergency heal. It can restore a large amount of health, but it has a long cooldown.\n\nSave Lay on Hands for dangerous moments when you or an important friendly target might die. It is not part of your normal damage rotation."
     L.SPELL_GENERAL_EXPERT_RIDING =
         "Expert Riding improves your riding and flying skill. This helps you travel faster, but it is not part of your Paladin combat abilities.\n\nUse riding and flying to move around the world faster. It does not change your damage rotation."
+    L.SPELL_GENERAL_WHIRLING_SURGE =
+        "Whirling Surge is a flying movement ability. It helps you move quickly while using dynamic flying or skyriding.\n\nUse it while flying when you want a burst of speed or movement. It is not part of your Paladin combat rotation."
     L.LEVEL_UP = "Level Up!"
     L.LEVEL_REACHED = "You reached level %d."
     L.NEW_TRAINING_AVAILABLE = "New training may be available."

@@ -103,6 +103,8 @@ if GetLocale() == "nlNL" then
         "Lay on Hands is een krachtige nood-heal. Het kan veel gezondheid herstellen, maar heeft een lange cooldown.\n\nBewaar Lay on Hands voor gevaarlijke momenten waarop jij of een belangrijke vriendelijke speler bijna doodgaat. Het hoort niet bij je normale damage-rotatie."
     L.SPELL_GENERAL_EXPERT_RIDING =
         "Expert Riding verbetert je rij- en vliegvaardigheid. Dit helpt je sneller te reizen, maar hoort niet bij je Paladin-gevechtsvaardigheden.\n\nGebruik rijden en vliegen om sneller door de wereld te reizen. Het verandert je damage-rotatie niet."
+    L.SPELL_GENERAL_WHIRLING_SURGE =
+        "Whirling Surge is een vliegbeweging. Het helpt je snel te bewegen tijdens dynamic flying of skyriding.\n\nGebruik het tijdens het vliegen als je extra snelheid of beweging wilt. Het hoort niet bij je Paladin-gevechtsrotatie."
     L.LEVEL_UP = "Level omhoog!"
     L.LEVEL_REACHED = "Je bent nu level %d."
     L.NEW_TRAINING_AVAILABLE = "Nieuwe training kan beschikbaar zijn."

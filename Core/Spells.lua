@@ -439,6 +439,18 @@ AM.Spells.GENERAL_UNLOCK = {
         category = "travel",
         priority = 10,
     }, -- Expert Riding (riding skill 225; spellID 34090 — retail / Wowhead)
+    {
+        spellID = 361584,
+        tutorialKey = "SPELL_GENERAL_WHIRLING_SURGE",
+        category = "travel",
+        priority = 9,
+    }, -- Whirling Surge (skyriding / dynamic flying; spellID 361584 — retail / Wowhead)
+    {
+        spellID = 447981,
+        tutorialKey = "SPELL_GENERAL_WHIRLING_SURGE",
+        category = "travel",
+        priority = 9,
+    }, -- Whirling Surge (alternate retail spellID; same ability — some clients report this id)
 }
 
 --------------------------------------------------------------------------------
