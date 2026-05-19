@@ -637,6 +637,13 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "localcds" then
+        if type(AM.PrintLocalCooldownStatus) == "function" then
+            AM:PrintLocalCooldownStatus()
+        end
+        return
+    end
+
     if lower == "debug cooldowns" then
         AM.DEBUG_COOLDOWNS = not AM.DEBUG_COOLDOWNS
         print(string.format("[Azeroth Mentor] DEBUG_COOLDOWNS = %s (verbose debug mode)", tostring(AM.DEBUG_COOLDOWNS)))

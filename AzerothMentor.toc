@@ -9,6 +9,7 @@ Core/Main.lua
 Locales/enUS.lua
 Locales/nlNL.lua
 Core/Player.lua
+Core/LocalCooldowns.lua
 Core/Spells.lua
 Core/LessonLog.lua
 Classes/Paladin/Retribution.lua

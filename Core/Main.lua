@@ -10,7 +10,7 @@ local AM = _G.AM
 -- Used by Core/Events.lua when filtering ADDON_LOADED (must match the addon folder / TOC name).
 AM.name = "AzerothMentor"
 
--- Optional dev toggles (see `/am debug milestones`, `/am debug cards`, `/am debug lessonlog`, `/am debug cooldowns`; `/am cooldowns` for one-shot report).
+-- Optional dev toggles (see `/am debug milestones`, `/am debug cards`, `/am debug lessonlog`, `/am debug cooldowns`; `/am cooldowns` and `/am localcds` for one-shot reports).
 AM.DEBUG_CARD_SELECTION = AM.DEBUG_CARD_SELECTION or false
 AM.DEBUG_LESSON_LOG = AM.DEBUG_LESSON_LOG or false
 AM.DEBUG_LESSON_TOAST = AM.DEBUG_LESSON_TOAST or false
