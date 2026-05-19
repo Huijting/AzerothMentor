@@ -27,6 +27,7 @@ local SPELL_CRUSADER_STRIKE = 35395
 local SPELL_JUDGMENT = 20271
 local SPELL_TEMPLARS_VERDICT = 85256
 local SPELL_FINAL_VERDICT = 383328
+local SPELL_DIVINE_STORM = 53385
 
 local BUILD_SPELL_ORDER = {
     SPELL_BLADE_OF_JUSTICE,
@@ -48,6 +49,46 @@ function module.GetRetributionSingleTargetSpenderSpellID()
         return SPELL_TEMPLARS_VERDICT
     end
     return nil
+end
+
+--- True when Divine Storm should be suggested instead of the single-target spender (beginner AoE only).
+--- @param combat table|nil snapshot from AM.RetributionCombat:GetState()
+--- @return boolean
+function module.ShouldUseRetributionAoESpender(combat)
+    if not AM:IsSpellKnownSafe(SPELL_DIVINE_STORM) then
+        return false
+    end
+    combat = combat or {}
+    local hp = tonumber(combat.holyPowerCurrent) or 0
+    if hp < 3 then
+        return false
+    end
+    local count = tonumber(combat.nearbyHostileInCombatCount)
+    if count == nil and AM.RetributionCombat and AM.RetributionCombat.CountHostileNameplatesInCombat then
+        count = AM.RetributionCombat:CountHostileNameplatesInCombat()
+    end
+    local minEnemies = tonumber(combat.hostileNameplateAoEMin) or 2
+    return (count or 0) >= minEnemies
+end
+
+--- @param combat table|nil
+--- @return number|nil spellID Divine Storm when ShouldUseRetributionAoESpender is true
+function module.GetRetributionAoESpenderSpellID(combat)
+    if module.ShouldUseRetributionAoESpender(combat) then
+        return SPELL_DIVINE_STORM
+    end
+    return nil
+end
+
+--- Holy Power spender for combat hint / mentor (AoE when multiple hostiles visible, else single-target).
+--- @param combat table|nil
+--- @return number|nil spellID
+local function PickRetributionSpendSpellID(combat)
+    local aoe = module.GetRetributionAoESpenderSpellID(combat)
+    if aoe then
+        return aoe
+    end
+    return module.GetRetributionSingleTargetSpenderSpellID()
 end
 
 --- First known builder in priority order; skips spells on local cooldown memory (no secret API reads).
@@ -120,10 +161,16 @@ function module.GetCombatRecommendation(state)
         }
     end
 
+    local spendSpellID = PickRetributionSpendSpellID(combat)
+    local spendLineKey = "RET_COMBAT_LINE_SPEND"
+    if spendSpellID == SPELL_DIVINE_STORM then
+        spendLineKey = "RET_COMBAT_LINE_SPEND_AOE"
+    end
+
     return {
         phase = PHASE_SPEND,
-        displayLineKey = "RET_COMBAT_LINE_SPEND",
-        suggestedSpellID = module.GetRetributionSingleTargetSpenderSpellID(),
+        displayLineKey = spendLineKey,
+        suggestedSpellID = spendSpellID,
     }
 end
 

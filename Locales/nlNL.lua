@@ -42,6 +42,7 @@ if GetLocale() == "nlNL" then
         "Bouw Holy Power op met Judgment, Blade of Justice of Crusader Strike."
     L.RET_COMBAT_LINE_BUILD_WAIT = "Wacht kort tot een builder weer klaar is."
     L.RET_COMBAT_LINE_SPEND = "Geef Holy Power uit met je single-target spender."
+    L.RET_COMBAT_LINE_SPEND_AOE = "Er zijn meerdere vijanden dichtbij. Geef Holy Power uit met Divine Storm."
     L.RET_COMBAT_LINE_SPEND_WAIT = "Wacht kort tot je spender weer klaar is."
     L.COMBAT_HINT_TITLE = "Azeroth Mentor"
     L.COMBAT_HINT_UNKNOWN_SPELL = "Onbekende vaardigheid"

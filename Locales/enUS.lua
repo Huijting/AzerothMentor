@@ -44,6 +44,7 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Build Holy Power with Judgment, Blade of Justice, or Crusader Strike."
     L.RET_COMBAT_LINE_BUILD_WAIT = "Wait briefly for a builder to become ready."
     L.RET_COMBAT_LINE_SPEND = "Spend Holy Power with your single-target spender."
+    L.RET_COMBAT_LINE_SPEND_AOE = "Several enemies are nearby. Spend Holy Power with Divine Storm."
     L.RET_COMBAT_LINE_SPEND_WAIT = "Wait briefly for your spender to become ready."
     L.COMBAT_HINT_TITLE = "Azeroth Mentor"
     L.COMBAT_HINT_UNKNOWN_SPELL = "Unknown spell"

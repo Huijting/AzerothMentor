@@ -588,6 +588,13 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "nameplates" then
+        if AM.RetributionCombat and AM.RetributionCombat.PrintNameplateDebug then
+            AM.RetributionCombat:PrintNameplateDebug()
+        end
+        return
+    end
+
     if lower == "toast reset" then
         if type(AM.ResetLessonToastAcknowledgements) == "function" then
             AM:ResetLessonToastAcknowledgements()
