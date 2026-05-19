@@ -370,6 +370,13 @@ AM.Spells.PALADIN = {
         priority = 88,
     }, -- Wake of Ashes (Retribution; talent or baseline depending on patch—hidden until known)
     {
+        spellID = 31884,
+        tutorialKey = "SPELL_PALADIN_AVENGING_WRATH",
+        tutorialKeyRet = "SPELL_RET_AVENGING_WRATH",
+        category = "burst",
+        priority = 86,
+    }, -- Avenging Wrath (offensive cooldown; spellID 31884 — retail / Wowhead)
+    {
         spellID = 85673,
         tutorialKey = "SPELL_PALADIN_WORD_OF_GLORY",
         category = "heal",

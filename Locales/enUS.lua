@@ -91,6 +91,10 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Blade of Justice is a core builder: it generates Holy Power from range so you can spend it on finishers like Templar's Verdict."
     L.SPELL_RET_WAKE_OF_ASHES =
         "Wake of Ashes damages enemies in a cone in front of you and gives Holy Power. Use it when several enemies are grouped or you need Holy Power quickly."
+    L.SPELL_PALADIN_AVENGING_WRATH =
+        "Avenging Wrath is a powerful cooldown that makes you stronger for a short time. It is useful when fighting tougher enemies or when you want extra damage.\n\nIt is not a Holy Power builder or spender. Press it when you want a burst, then keep using your normal combat abilities."
+    L.SPELL_RET_AVENGING_WRATH =
+        "Avenging Wrath is a powerful cooldown that makes you stronger for a short time. It is useful when fighting tougher enemies or when you want extra damage.\n\nUse Avenging Wrath, then keep following your normal rhythm: build Holy Power and spend it with your spender."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
     L.SPELL_PALADIN_DIVINE_STEED =

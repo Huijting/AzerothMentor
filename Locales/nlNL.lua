@@ -89,6 +89,10 @@ if GetLocale() == "nlNL" then
         "Blade of Justice is een belangrijke builder: het geeft Holy Power op afstand zodat je het kunt uitgeven op afmakers zoals Templar's Verdict."
     L.SPELL_RET_WAKE_OF_ASHES =
         "Wake of Ashes raakt vijanden in een kegel voor je en geeft Holy Power. Gebruik het als meerdere vijanden bij elkaar staan of je snel Holy Power nodig hebt."
+    L.SPELL_PALADIN_AVENGING_WRATH =
+        "Avenging Wrath is een sterke cooldown die je tijdelijk sterker maakt. Hij is handig tegen sterkere vijanden of wanneer je extra damage nodig hebt.\n\nHet is geen Holy Power-builder of -spender. Gebruik het voor extra burst en blijf daarna je normale gevechtsvaardigheden gebruiken."
+    L.SPELL_RET_AVENGING_WRATH =
+        "Avenging Wrath is een sterke cooldown die je tijdelijk sterker maakt. Hij is handig tegen sterkere vijanden of wanneer je extra damage nodig hebt.\n\nGebruik Avenging Wrath en blijf daarna je normale ritme volgen: bouw Holy Power op en geef het uit met je spender."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is een snelle genezing voor jou of een bondgenoot. Gebruik het als het leven laag wordt."
     L.SPELL_PALADIN_DIVINE_STEED =
