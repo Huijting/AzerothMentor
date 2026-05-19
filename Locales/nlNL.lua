@@ -93,6 +93,14 @@ if GetLocale() == "nlNL" then
         "Avenging Wrath is een sterke cooldown die je tijdelijk sterker maakt. Hij is handig tegen sterkere vijanden of wanneer je extra damage nodig hebt.\n\nHet is geen Holy Power-builder of -spender. Gebruik het voor extra burst en blijf daarna je normale gevechtsvaardigheden gebruiken."
     L.SPELL_RET_AVENGING_WRATH =
         "Avenging Wrath is een sterke cooldown die je tijdelijk sterker maakt. Hij is handig tegen sterkere vijanden of wanneer je extra damage nodig hebt.\n\nGebruik Avenging Wrath en blijf daarna je normale ritme volgen: bouw Holy Power op en geef het uit met je spender."
+    L.SPELL_PALADIN_DIVINE_TOLL =
+        "Divine Toll is een sterke talent-ability. Het is een aparte knop die je helpt schade te doen en Paladin-effecten te activeren.\n\nZet Divine Toll op je action bar. Gebruik het als extra sterke knop en ga daarna verder met je normale gevechtsritme."
+    L.SPELL_RET_DIVINE_TOLL =
+        "Divine Toll is een sterke talent-ability. Het is een aparte knop die je helpt schade te doen en Paladin-effecten te activeren.\n\nZet Divine Toll op je action bar. Gebruik het als extra sterke knop en ga daarna verder met je normale ritme: Holy Power opbouwen en uitgeven."
+    L.SPELL_RET_RIGHTEOUS_CAUSE =
+        "Righteous Cause is een passief talent. Het werkt automatisch en verbetert je bestaande Paladin-abilities.\n\nJe hoeft het niet op je action bar te zetten. Blijf gewoon je normale build/spend-ritme spelen."
+    L.SPELL_RET_HEALING_HANDS =
+        "Healing Hands is een passief talent dat je healing/support-tools verbetert. Het hoort niet bij je damage-rotatie.\n\nJe hebt hier geen nieuwe keybind voor nodig. Gebruik je healing abilities wanneer jij of een bondgenoot hulp nodig heeft."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is een snelle genezing voor jou of een bondgenoot. Gebruik het als het leven laag wordt."
     L.SPELL_PALADIN_DIVINE_STEED =

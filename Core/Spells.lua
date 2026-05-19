@@ -377,6 +377,27 @@ AM.Spells.PALADIN = {
         priority = 86,
     }, -- Avenging Wrath (offensive cooldown; spellID 31884 — retail / Wowhead)
     {
+        spellID = 375576,
+        tutorialKey = "SPELL_PALADIN_DIVINE_TOLL",
+        tutorialKeyRet = "SPELL_RET_DIVINE_TOLL",
+        category = "burst",
+        priority = 84,
+    }, -- Divine Toll (talent ability; spellID 375576 — retail Paladin / Wowhead)
+    {
+        spellID = 402912,
+        tutorialKey = "SPELL_RET_RIGHTEOUS_CAUSE",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "passive",
+        priority = 53,
+    }, -- Righteous Cause (Retribution passive talent; spellID 402912 — retail / Wowhead)
+    {
+        spellID = 326734,
+        tutorialKey = "SPELL_RET_HEALING_HANDS",
+        specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,
+        category = "passive",
+        priority = 52,
+    }, -- Healing Hands (Retribution passive talent; spellID 326734 — retail / Wowhead)
+    {
         spellID = 85673,
         tutorialKey = "SPELL_PALADIN_WORD_OF_GLORY",
         category = "heal",

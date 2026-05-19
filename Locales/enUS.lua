@@ -95,6 +95,14 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Avenging Wrath is a powerful cooldown that makes you stronger for a short time. It is useful when fighting tougher enemies or when you want extra damage.\n\nIt is not a Holy Power builder or spender. Press it when you want a burst, then keep using your normal combat abilities."
     L.SPELL_RET_AVENGING_WRATH =
         "Avenging Wrath is a powerful cooldown that makes you stronger for a short time. It is useful when fighting tougher enemies or when you want extra damage.\n\nUse Avenging Wrath, then keep following your normal rhythm: build Holy Power and spend it with your spender."
+    L.SPELL_PALADIN_DIVINE_TOLL =
+        "Divine Toll is a powerful talent ability. It is a separate button that can help you deal damage and trigger Paladin effects.\n\nPlace Divine Toll on your action bar. Use it as an extra strong button, then continue your normal combat rhythm."
+    L.SPELL_RET_DIVINE_TOLL =
+        "Divine Toll is a powerful talent ability. It is a separate button that can help you deal damage and trigger Paladin effects.\n\nPlace Divine Toll on your action bar. Use it as an extra strong button, then continue your normal rhythm: build Holy Power and spend it."
+    L.SPELL_RET_RIGHTEOUS_CAUSE =
+        "Righteous Cause is a passive talent. It works automatically and improves your existing Paladin abilities.\n\nYou do not need to place it on your bars. Just keep playing your normal build/spend rhythm."
+    L.SPELL_RET_HEALING_HANDS =
+        "Healing Hands is a passive talent that improves your healing/support tools. It is not part of your damage rotation.\n\nYou do not need a new keybind for this talent. Use your healing abilities when you or an ally needs help."
     L.SPELL_PALADIN_FLASH_OF_LIGHT =
         "Flash of Light is a quick heal for you or an ally. Use it when health gets dangerously low."
     L.SPELL_PALADIN_DIVINE_STEED =
