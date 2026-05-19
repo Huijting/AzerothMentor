@@ -13,8 +13,8 @@ local SPELL_JUDGMENT = 20271
 local SPELL_TEMPLARS_VERDICT = 85256
 local SPELL_FINAL_VERDICT = 383328
 
--- Beginner AoE: at least this many hostile visible nameplates while player is in combat.
-local HOSTILE_NAMEPLATE_AOE_MIN = 2
+-- Beginner AoE: at least this many engaged enemies (target + extras) while player is in combat.
+local HOSTILE_NAMEPLATE_AOE_MIN = 3
 local MAX_NAMEPLATE_SCAN = 40
 
 local function GetHolyPowerPowerType()
@@ -92,17 +92,56 @@ local function CollectNameplateTokens()
     return tokens, table.concat(notes, "; ")
 end
 
---- Evaluate one nameplate token for AoE counting (v1: no per-unit UnitAffectingCombat requirement).
+--- @return boolean
+function AM.RetributionCombat:HasValidHostileTarget()
+    if not SafeCall(UnitExists, "target") then
+        return false
+    end
+    if SafeCall(UnitIsDead, "target") == true then
+        return false
+    end
+    return SafeCall(UnitCanAttack, "player", "target") == true
+end
+
+--- Conservative: unit is part of the player's pull (targets player or has threat), not merely visible.
 --- @param unit string
---- @param playerInCombat boolean
---- @return table row { token, exists, canAttack, isDead, unitInCombat, counted, reason }
-function AM.RetributionCombat:EvaluateNameplateUnit(unit, playerInCombat)
+--- @return boolean engaged
+--- @return string reason
+local function IsUnitEngagedWithPlayer(unit)
+    if not unit or type(unit) ~= "string" then
+        return false, "invalid unit"
+    end
+    local unitTarget = unit .. "target"
+    if SafeCall(UnitExists, unitTarget) and SafeCall(UnitIsUnit, unitTarget, "player") then
+        return true, "targeting player"
+    end
+    if type(UnitThreatSituation) == "function" then
+        local status = SafeCall(UnitThreatSituation, "player", unit)
+        if type(status) == "number" and status > 0 then
+            return true, "threat on player"
+        end
+    end
+    if SafeCall(UnitAffectingCombat, unit) == true and SafeCall(UnitIsUnit, unit, "target") then
+        return true, "current target in combat"
+    end
+    return false, "not engaged with player (conservative)"
+end
+
+--- Evaluate one unit for conservative AoE counting.
+--- @param unit string
+--- @param opts table|nil { isCurrentTarget, skipCount }
+--- @return table row
+function AM.RetributionCombat:EvaluateNameplateUnit(unit, opts)
+    opts = opts or {}
     local row = {
         token = unit,
+        isTarget = opts.isCurrentTarget and true or false,
         exists = false,
         canAttack = nil,
         isDead = nil,
         unitInCombat = nil,
+        targetsPlayer = nil,
+        threatOnPlayer = nil,
         counted = false,
         reason = "unknown",
     }
@@ -131,18 +170,35 @@ function AM.RetributionCombat:EvaluateNameplateUnit(unit, playerInCombat)
     end
 
     row.unitInCombat = SafeCall(UnitAffectingCombat, unit)
+    local unitTarget = unit .. "target"
+    row.targetsPlayer = SafeCall(UnitExists, unitTarget) and SafeCall(UnitIsUnit, unitTarget, "player") or false
+    if type(UnitThreatSituation) == "function" then
+        row.threatOnPlayer = SafeCall(UnitThreatSituation, "player", unit)
+    end
 
-    if not playerInCombat then
-        row.reason = "player not in combat"
+    if opts.isCurrentTarget then
+        row.counted = not opts.skipCount
+        row.reason = opts.skipCount and "current target (counted separately)" or "counted (current target)"
         return row
     end
 
-    row.counted = true
-    row.reason = "counted (hostile visible nameplate)"
+    if SafeCall(UnitIsUnit, unit, "target") then
+        row.reason = "skipped (same as current target)"
+        return row
+    end
+
+    local engaged, engageReason = IsUnitEngagedWithPlayer(unit)
+    if engaged then
+        row.counted = true
+        row.reason = "counted (" .. engageReason .. ")"
+    else
+        row.reason = engageReason
+    end
     return row
 end
 
---- @param playerInCombat boolean|nil default: current player combat state
+--- Conservative AoE count: valid hostile target + engaged extras (not distant visible nameplates).
+--- @param playerInCombat boolean|nil
 --- @return table[] rows
 --- @return number counted
 --- @return string scanNote
@@ -153,17 +209,48 @@ function AM.RetributionCombat:GetHostileNameplateEvaluation(playerInCombat)
     local tokens, scanNote = CollectNameplateTokens()
     local rows = {}
     local counted = 0
+    local seenGuids = {}
+
+    if not playerInCombat then
+        return rows, 0, scanNote .. " | player not in combat"
+    end
+
+    if not self:HasValidHostileTarget() then
+        return rows, 0, scanNote .. " | no valid hostile target"
+    end
+
+    local targetGuid = SafeCall(UnitGUID, "target")
+    if targetGuid then
+        seenGuids[targetGuid] = true
+    end
+    rows[#rows + 1] = self:EvaluateNameplateUnit("target", { isCurrentTarget = true })
+    counted = 1
+
     for _, unit in ipairs(tokens) do
-        local row = self:EvaluateNameplateUnit(unit, playerInCombat)
+        local skipAsTargetDup = SafeCall(UnitIsUnit, unit, "target")
+        local row = self:EvaluateNameplateUnit(unit, {
+            isCurrentTarget = false,
+            skipCount = skipAsTargetDup,
+        })
         rows[#rows + 1] = row
         if row.counted then
-            counted = counted + 1
+            local guid = SafeCall(UnitGUID, unit)
+            if guid and seenGuids[guid] then
+                row.counted = false
+                row.reason = "not counted (duplicate of already-counted unit)"
+            elseif guid then
+                seenGuids[guid] = true
+                counted = counted + 1
+            else
+                counted = counted + 1
+            end
         end
     end
+
     return rows, counted, scanNote
 end
 
---- Count hostile visible nameplates while the player is in combat (beginner AoE signal).
+--- Engaged enemy count for beginner AoE (target + extras engaged with player).
 --- @return number
 function AM.RetributionCombat:CountHostileNameplatesInCombat()
     if not UnitAffectingCombat("player") then
@@ -177,24 +264,34 @@ function AM.RetributionCombat:PrintNameplateDebug()
     local playerInCombat = UnitAffectingCombat("player") and true or false
     local rows, counted, scanNote = self:GetHostileNameplateEvaluation(playerInCombat)
 
-    print("|cffaaaaff[Azeroth Mentor]|r Nameplate AoE debug:")
+    print("|cffaaaaff[Azeroth Mentor]|r Nameplate AoE debug (conservative):")
     print("  Player UnitAffectingCombat: " .. YesNo(playerInCombat))
+    print("  Valid hostile target: " .. YesNo(self:HasValidHostileTarget()))
     print("  Scan: " .. tostring(scanNote))
-    print(string.format("  Tokens scanned: %d  |  Counted (hostile visible): %d  |  AoE threshold: >= %d", #rows, counted, HOSTILE_NAMEPLATE_AOE_MIN))
+    print(string.format(
+        "  Units listed: %d  |  Final AoE count: %d  |  Divine Storm at >= %d",
+        #rows,
+        counted,
+        HOSTILE_NAMEPLATE_AOE_MIN
+    ))
 
     if #rows == 0 then
-        print("  (no nameplate tokens found — enable enemy nameplates and fight near mobs)")
+        print("  (no units to evaluate — need a hostile target and/or nameplates)")
         return
     end
 
     for _, row in ipairs(rows) do
+        local threatStr = row.threatOnPlayer == nil and "?" or tostring(row.threatOnPlayer)
         print(string.format(
-            "  %s | exists=%s attack=%s dead=%s unitCombat=%s | counted=%s | %s",
+            "  %s | target=%s | exists=%s attack=%s dead=%s combat=%s tgtPlayer=%s threat=%s | counted=%s | %s",
             tostring(row.token),
+            YesNo(row.isTarget),
             YesNo(row.exists),
             row.canAttack == nil and "?" or YesNo(row.canAttack),
             row.isDead == nil and "?" or YesNo(row.isDead),
             row.unitInCombat == nil and "?" or YesNo(row.unitInCombat),
+            row.targetsPlayer == nil and "?" or YesNo(row.targetsPlayer),
+            threatStr,
             YesNo(row.counted),
             tostring(row.reason)
         ))
@@ -240,10 +337,11 @@ function AM.RetributionCombat:PrintStateToChat()
     print("  Templar's Verdict known: " .. YesNo(s.templarsVerdictKnown))
     print("  Final Verdict known: " .. YesNo(s.finalVerdictKnown))
     print(string.format(
-        "  Hostile visible nameplates (player in combat): %d (AoE hint at >= %d)",
+        "  AoE enemy count (conservative, target + engaged): %d (Divine Storm at >= %d)",
         s.nearbyHostileInCombatCount or 0,
         s.hostileNameplateAoEMin or HOSTILE_NAMEPLATE_AOE_MIN
     ))
+    print("  Valid hostile target: " .. YesNo(self:HasValidHostileTarget()))
     print("  ShouldUseRetributionAoESpender: " .. YesNo(useAoE))
     print("  Single-target spender spellID: " .. tostring(stSpender or "nil"))
     print("  AoE spender spellID: " .. tostring(aoeSpender or "nil"))

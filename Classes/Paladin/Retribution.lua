@@ -67,7 +67,7 @@ function module.ShouldUseRetributionAoESpender(combat)
     if count == nil and AM.RetributionCombat and AM.RetributionCombat.CountHostileNameplatesInCombat then
         count = AM.RetributionCombat:CountHostileNameplatesInCombat()
     end
-    local minEnemies = tonumber(combat.hostileNameplateAoEMin) or 2
+    local minEnemies = tonumber(combat.hostileNameplateAoEMin) or 3
     return (count or 0) >= minEnemies
 end
 
