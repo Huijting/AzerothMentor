@@ -105,7 +105,7 @@ local function FinishSpellCardDisplay(self, result, branch, opts)
     end
     -- Mentor log: spotlight paths only (no combat, no milestone here, no rotating first_known tips).
     if result and type(self.AddLessonLogEntry) == "function" and not (opts and opts.skipLessonLog) then
-        if branch ~= "combat_mentor" and branch ~= "level_milestone" and branch ~= "first_known" then
+        if branch ~= "combat_mentor" and branch ~= "level_milestone" and branch ~= "first_known" and branch ~= "talent_help" then
             local title = result.title or result.name
             if not title or title == "" then
                 title = result.spellID and ("Spell " .. tostring(result.spellID)) or "?"
@@ -1368,7 +1368,7 @@ end
 
 --- Spell card priority:
 --- In combat: Retribution combat mentor when available.
---- Out of combat: level milestone → mentor explain → unknown untracked (also suppressed at detect-time if a milestone is active) → latest learned spotlight → default known.
+--- Out of combat: level milestone → mentor explain → unknown untracked → latest learned → talent help (unspent points) → default known.
 --- Spec onboarding stays in MainFrame (separate panel).
 --- @param opts table|nil optional `{ skipLessonLog = true }` so diagnostic callers do not append to the lesson log.
 --- @return table|nil { spellID, tutorialKey, category, priority, name, icon }
@@ -1455,6 +1455,13 @@ function AM:GetSpellCardDisplayInfo(opts)
                     end
                 end
             end
+        end
+    end
+
+    if type(self.GetTalentHelpCard) == "function" then
+        local talentCard = self:GetTalentHelpCard()
+        if talentCard then
+            return FinishSpellCardDisplay(self, talentCard, "talent_help", opts)
         end
     end
 

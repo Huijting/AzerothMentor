@@ -14,6 +14,7 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
 eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 eventFrame:RegisterEvent("SPELLS_CHANGED")
+eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 
 eventFrame:RegisterUnitEvent("UNIT_POWER_FREQUENT", "player")
 eventFrame:RegisterEvent("PLAYER_ENTER_COMBAT")
@@ -41,6 +42,11 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
         end
         return
     elseif event == "PLAYER_ENTER_COMBAT" or event == "PLAYER_LEAVE_COMBAT" then
+        if AzerothMentorFrame and AzerothMentorFrame:IsShown() then
+            AM:UpdateMainFrame({ skipDetect = true })
+        end
+        return
+    elseif event == "TRAIT_CONFIG_UPDATED" then
         if AzerothMentorFrame and AzerothMentorFrame:IsShown() then
             AM:UpdateMainFrame({ skipDetect = true })
         end

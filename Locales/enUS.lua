@@ -63,6 +63,13 @@ if locale == "enUS" or locale ~= "nlNL" then
     L.SPELL_NEW_ABILITY = "New Ability Learned:"
     L.NEW_ABILITY_LEARNED = "New Ability Learned"
     L.MENTOR_TIP = "Mentor Tip"
+    L.TALENT_HELP_LABEL = "Talent help"
+    L.TALENT_HELP_INLINE = "Talent point available: spend it when you are ready."
+    L.TALENT_HELP_TITLE = "Talent point available"
+    L.TALENT_HELP_BODY =
+        "You have an unspent talent point. If you are following a build guide, spend it there. While learning, simple or passive talents are usually easier than adding many new buttons."
+    L.TALENT_HELP_INSTRUCTION =
+        "If a talent gives you a new ability, place it on your bars and practice it slowly."
     L.UNKNOWN_SPELL_NOTICE =
         "Mentor noticed a new ability, but no lesson is available for it yet."
     L.SPELL_PALADIN_CRUSADER_STRIKE =

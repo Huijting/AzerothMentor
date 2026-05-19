@@ -61,6 +61,13 @@ if GetLocale() == "nlNL" then
     L.SPELL_NEW_ABILITY = "Nieuwe vaardigheid geleerd:"
     L.NEW_ABILITY_LEARNED = "Nieuwe vaardigheid geleerd"
     L.MENTOR_TIP = "Mentor Tip"
+    L.TALENT_HELP_LABEL = "Talent hulp"
+    L.TALENT_HELP_INLINE = "Talentpunt beschikbaar: besteed het wanneer je er klaar voor bent."
+    L.TALENT_HELP_TITLE = "Talentpunt beschikbaar"
+    L.TALENT_HELP_BODY =
+        "Je hebt een onbesteed talentpunt. Volg je buildgids als je die gebruikt. Tijdens het leren zijn simpele of passieve talenten meestal makkelijker dan veel nieuwe knoppen."
+    L.TALENT_HELP_INSTRUCTION =
+        "Geeft een talent je een nieuwe vaardigheid, zet die op je balken en oefen rustig."
     L.UNKNOWN_SPELL_NOTICE =
         "Mentor heeft een nieuwe vaardigheid gezien, maar er is nog geen les voor beschikbaar."
     L.SPELL_PALADIN_CRUSADER_STRIKE =

@@ -196,6 +196,17 @@ holyPowerTrainingText:SetTextColor(0.7, 0.78, 0.92)
 holyPowerTrainingText:EnableMouse(false)
 holyPowerTrainingText:Hide()
 
+-- Subtle talent reminder (Talent Help v1); shown when unspent points exist and a full talent card is not active.
+local talentReminderText = AzerothMentorFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+talentReminderText:SetWidth(CONTENT_WIDTH)
+talentReminderText:SetJustifyH("CENTER")
+talentReminderText:SetJustifyV("TOP")
+talentReminderText:SetWordWrap(true)
+talentReminderText:SetSpacing(2)
+talentReminderText:SetTextColor(0.55, 0.92, 0.95)
+talentReminderText:EnableMouse(false)
+talentReminderText:Hide()
+
 -- Level 10+ Paladin spec onboarding: "Choose Your Path" card (hidden once a specialization is active).
 -- Level 10 is a major beginner milestone in Retail; picking a spec changes mentor stage and later module hooks.
 local specOnboardFrame = CreateFrame("Frame", nil, AzerothMentorFrame, "BackdropTemplate")
@@ -644,6 +655,13 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "talents" then
+        if type(AM.PrintTalentHelpStatus) == "function" then
+            AM:PrintTalentHelpStatus()
+        end
+        return
+    end
+
     if lower == "debug cooldowns" then
         AM.DEBUG_COOLDOWNS = not AM.DEBUG_COOLDOWNS
         print(string.format("[Azeroth Mentor] DEBUG_COOLDOWNS = %s (verbose debug mode)", tostring(AM.DEBUG_COOLDOWNS)))
@@ -946,23 +964,47 @@ function AM:UpdateMainFrame(opts)
         holyPowerTrainingText:Hide()
     end
 
+    self:ClearMentorSpellCardUI()
+    local cardInfo = self:GetSpellCardDisplayInfo()
+    local isMilestone = cardInfo and cardInfo.type == "LEVEL_MILESTONE"
+    local isTalentHelpCard = cardInfo and cardInfo.type == "TALENT_HELP"
+
+    local showTalentInline = false
+    if type(self.HasUnspentTalentPoints) == "function" and self:HasUnspentTalentPoints() and not isTalentHelpCard then
+        talentReminderText:SetText(L["TALENT_HELP_INLINE"])
+        showTalentInline = true
+        talentReminderText:Show()
+    else
+        talentReminderText:Hide()
+    end
+
+    talentReminderText:ClearAllPoints()
+    if showTalentInline then
+        if showHolyPowerTraining then
+            talentReminderText:SetPoint("TOP", holyPowerTrainingText, "BOTTOM", 0, -6)
+        else
+            talentReminderText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -10)
+        end
+    end
+
+    local mentorStackBottom = tutorialText
+    if showHolyPowerTraining then
+        mentorStackBottom = holyPowerTrainingText
+    end
+    if showTalentInline then
+        mentorStackBottom = talentReminderText
+    end
+
     levelUpText:ClearAllPoints()
     if showSpecOnboarding then
         levelUpText:SetPoint("TOP", specOnboardFrame, "BOTTOM", 0, -10)
-    elseif showHolyPowerTraining then
-        levelUpText:SetPoint("TOP", holyPowerTrainingText, "BOTTOM", 0, -10)
     else
-        levelUpText:SetPoint("TOP", tutorialText, "BOTTOM", 0, -12)
+        levelUpText:SetPoint("TOP", mentorStackBottom, "BOTTOM", 0, showTalentInline and -8 or (showHolyPowerTraining and -10 or -12))
     end
 
     if self._newAbilityBanner then
         self._newAbilityBanner = false
     end
-
-    self:ClearMentorSpellCardUI()
-
-    local cardInfo = self:GetSpellCardDisplayInfo()
-    local isMilestone = cardInfo and cardInfo.type == "LEVEL_MILESTONE"
 
     local now = GetTime()
     local mentorExplainActive = self._mentorExplainUntil and now < self._mentorExplainUntil and self._mentorExplainSpellID
@@ -971,6 +1013,7 @@ function AM:UpdateMainFrame(opts)
     local showMentorTipLabel = cardInfo
         and (
             isMilestone
+            or isTalentHelpCard
             or (latestId and cardInfo.spellID == latestId and self:IsSpellKnownSafe(latestId))
             or (mentorExplainActive and self._mentorExplainSpellID == cardInfo.spellID)
             or cardInfo.isUnknownUntracked
@@ -986,6 +1029,10 @@ function AM:UpdateMainFrame(opts)
         anchorFrame = specOnboardFrame
         anchorPoint = "BOTTOM"
         anchorYOffset = -10
+    elseif showTalentInline then
+        anchorFrame = talentReminderText
+        anchorPoint = "BOTTOM"
+        anchorYOffset = -10
     elseif showHolyPowerTraining then
         anchorFrame = holyPowerTrainingText
         anchorPoint = "BOTTOM"
@@ -997,7 +1044,13 @@ function AM:UpdateMainFrame(opts)
     end
 
     if showMentorTipLabel then
-        spellCardLabel:SetText(isMilestone and L["MILESTONE_TIP_LABEL"] or L["MENTOR_TIP"])
+        local labelKey = "MENTOR_TIP"
+        if isMilestone then
+            labelKey = "MILESTONE_TIP_LABEL"
+        elseif isTalentHelpCard then
+            labelKey = "TALENT_HELP_LABEL"
+        end
+        spellCardLabel:SetText(L[labelKey])
         spellCardLabel:ClearAllPoints()
         spellCardLabel:SetPoint("TOP", anchorFrame, anchorPoint, 0, anchorYOffset)
         spellCardLabel:Show()
@@ -1011,7 +1064,23 @@ function AM:UpdateMainFrame(opts)
 
     if cardInfo then
         spellCard:Show()
-        if cardInfo.type == "LEVEL_MILESTONE" then
+        if cardInfo.type == "TALENT_HELP" then
+            spellCardTip:SetFontObject(GameFontHighlight)
+            spellCardTip:SetSpacing(4)
+            spellIconBtn.spellID = nil
+            spellIconTex:SetTexture(cardInfo.icon or 134400)
+            spellIconTex:SetAlpha(0.85)
+            spellIconBtn:Show()
+            spellIconBtn:EnableMouse(false)
+            spellCardName:SetText(cardInfo.title or L["TALENT_HELP_TITLE"])
+            local tip = cardInfo.body or ""
+            if cardInfo.instruction and cardInfo.instruction ~= "" then
+                tip = tip .. "\n\n" .. cardInfo.instruction
+            end
+            spellCardTip:SetText(tip)
+            milestoneAcceptBtn:Hide()
+            ApplySpellCardLayout(false)
+        elseif cardInfo.type == "LEVEL_MILESTONE" then
             spellCardTip:SetFontObject(GameFontHighlight)
             spellCardTip:SetSpacing(4)
             local sid = cardInfo.spellID
