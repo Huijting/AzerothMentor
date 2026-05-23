@@ -9,6 +9,8 @@ local locale = GetLocale()
 
 -- English when the client is enUS, or when Dutch (nlNL) is not the active locale.
 if locale == "enUS" or locale ~= "nlNL" then
+    L.REPAIR_REMINDER_TEXT =
+        "Your gear is damaged (lowest: %s%%)\nVisit a vendor and choose Repair All."
     L.ADDON_TITLE = "Azeroth Mentor"
     L.LOADED = "[Azeroth Mentor] Loaded successfully!"
     L.CLASS_BASICS = "Class Basics"

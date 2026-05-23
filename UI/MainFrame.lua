@@ -588,6 +588,54 @@ SlashCmdList["AZEROTHMENTOR"] = function(msg)
         return
     end
 
+    if lower == "repair test" then
+        if type(AM.RepairReminderInit) == "function" then
+            AM:RepairReminderInit()
+        end
+        if type(AM.ShowRepairReminder) == "function" then
+            if AM:ShowRepairReminder(true, true) then
+                print("[Azeroth Mentor] Repair reminder test shown (does not block revive reminder).")
+            else
+                print("[Azeroth Mentor] Repair reminder test could not show.")
+            end
+        end
+        return
+    end
+
+    if lower == "repair status" then
+        if type(AM.PrintRepairReminderStatus) == "function" then
+            AM:PrintRepairReminderStatus()
+        end
+        return
+    end
+
+    if lower == "repair on" then
+        if type(AM.EnsureRepairReminderDB) == "function" then
+            AM:EnsureRepairReminderDB().enabled = true
+            print("[Azeroth Mentor] Repair reminder enabled.")
+        end
+        return
+    end
+
+    if lower == "repair off" then
+        if type(AM.EnsureRepairReminderDB) == "function" then
+            AM:EnsureRepairReminderDB().enabled = false
+        end
+        if type(AM.HideRepairReminder) == "function" then
+            AM:HideRepairReminder()
+        end
+        print("[Azeroth Mentor] Repair reminder disabled.")
+        return
+    end
+
+    if lower == "repair reset" then
+        if type(AM.RepairReminderRearm) == "function" then
+            AM:RepairReminderRearm()
+        end
+        print("[Azeroth Mentor] Repair reminder re-armed for next revive.")
+        return
+    end
+
     if lower == "nameplates" then
         if AM.RetributionCombat and AM.RetributionCombat.PrintNameplateDebug then
             AM.RetributionCombat:PrintNameplateDebug()

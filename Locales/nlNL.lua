@@ -7,6 +7,8 @@ local AM = _G.AM
 local L = AM.L
 
 if GetLocale() == "nlNL" then
+    L.REPAIR_REMINDER_TEXT =
+        "Je uitrusting is beschadigd (laagste: %s%%)\nGa naar een vendor en kies Repair All."
     L.ADDON_TITLE = "Azeroth Mentor"
     L.LOADED = "[Azeroth Mentor] Succesvol geladen!"
     L.CLASS_BASICS = "Basis van je klasse"
