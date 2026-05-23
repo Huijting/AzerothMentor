@@ -384,6 +384,13 @@ AM.Spells.PALADIN = {
         priority = 84,
     }, -- Divine Toll (talent ability; spellID 375576 — retail Paladin / Wowhead)
     {
+        spellID = 379391,
+        tutorialKey = "SPELL_PALADIN_QUICKENED_INVOCATION",
+        tutorialKeyRet = "SPELL_RET_QUICKENED_INVOCATION",
+        category = "passive",
+        priority = 51,
+    }, -- Quickened Invocation (passive; shortens Divine Toll cooldown; spellID 379391 — retail / Wowhead)
+    {
         spellID = 402912,
         tutorialKey = "SPELL_RET_RIGHTEOUS_CAUSE",
         specIdRequired = SPEC_ID_RETRIBUTION_PALADIN,

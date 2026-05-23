@@ -99,6 +99,10 @@ if GetLocale() == "nlNL" then
         "Divine Toll is een sterke talent-ability. Het is een aparte knop die je helpt schade te doen en Paladin-effecten te activeren.\n\nZet Divine Toll op je action bar. Gebruik het als extra sterke knop en ga daarna verder met je normale gevechtsritme."
     L.SPELL_RET_DIVINE_TOLL =
         "Divine Toll is een sterke talent-ability. Het is een aparte knop die je helpt schade te doen en Paladin-effecten te activeren.\n\nZet Divine Toll op je action bar. Gebruik het als extra sterke knop en ga daarna verder met je normale ritme: Holy Power opbouwen en uitgeven."
+    L.SPELL_PALADIN_QUICKENED_INVOCATION =
+        "Quickened Invocation is een passief talent. Het zorgt dat Divine Toll sneller terugkomt. Je drukt hiervoor geen nieuwe knop in.\n\nGebruik Divine Toll wanneer het klaar is en ga daarna verder met je normale gevechtsritme."
+    L.SPELL_RET_QUICKENED_INVOCATION =
+        "Quickened Invocation is een passief talent. Het zorgt dat Divine Toll sneller terugkomt. Je drukt hiervoor geen nieuwe knop in.\n\nGebruik Divine Toll wanneer het klaar is en blijf daarna je normale build/spend-ritme volgen."
     L.SPELL_RET_RIGHTEOUS_CAUSE =
         "Righteous Cause is een passief talent. Het werkt automatisch en verbetert je bestaande Paladin-abilities.\n\nJe hoeft het niet op je action bar te zetten. Blijf gewoon je normale build/spend-ritme spelen."
     L.SPELL_RET_HEALING_HANDS =

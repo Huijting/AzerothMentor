@@ -101,6 +101,10 @@ if locale == "enUS" or locale ~= "nlNL" then
         "Divine Toll is a powerful talent ability. It is a separate button that can help you deal damage and trigger Paladin effects.\n\nPlace Divine Toll on your action bar. Use it as an extra strong button, then continue your normal combat rhythm."
     L.SPELL_RET_DIVINE_TOLL =
         "Divine Toll is a powerful talent ability. It is a separate button that can help you deal damage and trigger Paladin effects.\n\nPlace Divine Toll on your action bar. Use it as an extra strong button, then continue your normal rhythm: build Holy Power and spend it."
+    L.SPELL_PALADIN_QUICKENED_INVOCATION =
+        "Quickened Invocation is a passive talent. It makes Divine Toll come back sooner. You do not press anything new for this talent.\n\nKeep using Divine Toll when it is ready, then continue your normal combat rhythm."
+    L.SPELL_RET_QUICKENED_INVOCATION =
+        "Quickened Invocation is a passive talent. It makes Divine Toll come back sooner. You do not press anything new for this talent.\n\nKeep using Divine Toll when it is ready, then continue your normal build/spend rhythm."
     L.SPELL_RET_RIGHTEOUS_CAUSE =
         "Righteous Cause is a passive talent. It works automatically and improves your existing Paladin abilities.\n\nYou do not need to place it on your bars. Just keep playing your normal build/spend rhythm."
     L.SPELL_RET_HEALING_HANDS =
